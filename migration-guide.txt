@@ -60,3 +60,6 @@ module.exports = {
 
 >>> Seeder Run
 npx sequelize-cli db:seed:all
+
+>>> Seeder Run Single
+npx sequelize-cli db:seed --seed 20231018020503-user-admin
