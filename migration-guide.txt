@@ -1,0 +1,41 @@
+>>> Initial the project after install sequelize-cli
+npx sequelize-cli init
+
+>>> Create new migration
+npx sequelize-cli migration:generate --name create_users_table
+
+>>> Update existing migration
+npx sequelize-cli migration:generate --name add_age_and_job_to_users
+
+>>> update command example
+up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('Users', 'age', {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      after: 'password', // Menentukan bahwa kolom 'age' akan ditambahkan setelah 'password'
+    });
+
+    down: async (queryInterface, Sequelize) => {
+        await queryInterface.removeColumn('Users', 'age');
+        await queryInterface.removeColumn('Users', 'job');
+    }
+};
+
+>>> Delete existing migration
+npx sequelize-cli migration:generate --name remove_users_table
+
+>>> Delete command example
+up: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('Users');
+},
+
+down: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('Users', {
+        // Definisikan kembali kolom-kolom tabel Users jika perlu melakukan rollback
+    });
+}
+
+
+>>> MIGRATE FRESH
+npx sequelize-cli db:migrate:undo:all
+npx sequelize-cli db:migrate
