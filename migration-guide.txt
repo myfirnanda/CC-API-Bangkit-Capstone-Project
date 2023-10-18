@@ -7,7 +7,7 @@ npx sequelize-cli migration:generate --name create_users_table
 >>> Update existing migration
 npx sequelize-cli migration:generate --name add_age_and_job_to_users
 
->>> update command example
+>>> update code example
 up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn('Users', 'age', {
       type: Sequelize.INTEGER,
@@ -24,7 +24,7 @@ up: async (queryInterface, Sequelize) => {
 >>> Delete existing migration
 npx sequelize-cli migration:generate --name remove_users_table
 
->>> Delete command example
+>>> Delete code example
 up: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Users');
 },
@@ -35,7 +35,28 @@ down: async (queryInterface, Sequelize) => {
     });
 }
 
-
->>> MIGRATE FRESH
+>>> Migrate Fresh
 npx sequelize-cli db:migrate:undo:all
 npx sequelize-cli db:migrate
+
+>>> Seeder Cretae New File
+npx sequelize-cli seed:generate --name demo-user
+
+>>> Seeder code example
+module.exports = {
+    up: (queryInterface, Sequelize) => {
+        return queryInterface.bulkInsert('Users', [{
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'example@example.com',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }]);
+    },
+    down: (queryInterface, Sequelize) => {
+        return queryInterface.bulkDelete('Users', null, {});
+    }
+};
+
+>>> Seeder Run
+npx sequelize-cli db:seed:all

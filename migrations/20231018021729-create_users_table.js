@@ -24,6 +24,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      isAdmin: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
