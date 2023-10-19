@@ -9,12 +9,12 @@ const createToken = (email) => {
   });
 };
 
-exports.getSignup = (req, res) => (
-  res.status(200).json({
+exports.getSignup = (req, res) => {
+  return res.status(200).json({
     success: true,
     message: 'Sign up Page',
-  })
-);
+  });
+};
 
 exports.postSignup = async (req, res) => {
   const {
@@ -49,11 +49,11 @@ exports.postSignup = async (req, res) => {
       success: false,
       message: 'Gagal Chuaakss',
     });
-  }
+  };
 };
 
 exports.getLogin = (req, res) => {
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: 'Login Page',
   });
@@ -85,7 +85,7 @@ exports.postLogin = async (req, res) => {
     const token = createToken(user.email);
     res.cookie('jwt', token, {httpOnly: true, maxAge});
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Berhasil Login',
     });
@@ -94,20 +94,20 @@ exports.postLogin = async (req, res) => {
       success: false,
       message: 'Gagal Chuaks',
     });
-  }
+  };
 };
 
 exports.postLogout = (req, res) => {
   try {
     res.clearCookie('jwt');
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Berhasil Logout',
     });
   } catch (error) {
-    es.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Terjadi kesalahan',
     });
-  }
+  };
 };
