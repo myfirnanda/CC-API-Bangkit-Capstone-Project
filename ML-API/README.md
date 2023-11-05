@@ -5,7 +5,7 @@ This is a simple FastAPI project structured for a company-level application. The
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.8+
 - Pip
 
 ## Installation
@@ -13,8 +13,8 @@ This is a simple FastAPI project structured for a company-level application. The
 Clone the repository and navigate to the project directory:
 
 ```bash
-git clone https://github.com/your-username/my_fastapi_project.git
-cd my_fastapi_project
+git https://github.com/yg-firnanda/CC-API-Bangkit-Capstone-Project.git
+cd CC-API-Bangkit-Capstone-Project/ML-API/
 ```
 
 Install the required dependencies:
