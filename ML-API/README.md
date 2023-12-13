@@ -35,8 +35,8 @@ The application will be available at [http://127.0.0.1:8000/](http://127.0.0.1:8
 ## Request body
 ```json
 {
-"ingredients": "apple",
-"limit": "all"
+  "ingredients": "apple",
+  "limit": "all"
 }
 ```
 
