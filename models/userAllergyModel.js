@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const User = sequelize.define('User', {
+const UserAllergy = sequelize.define('UserAllergy', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -9,23 +9,13 @@ const User = sequelize.define('User', {
     autoIncrement: true,
     unique: true,
   },
-  name: {
-    type: DataTypes.STRING,
+  user_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
-  email: {
-    type: DataTypes.STRING,
+  allergy_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-    unique: true,
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  isAdmin: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -37,7 +27,8 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
   },
+}, {
+  tableName: 'user_allergies',
 });
 
-module.exports = User;
-
+module.exports = UserAllergy;

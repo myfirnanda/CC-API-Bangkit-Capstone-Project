@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const Recipe = sequelize.define('Recipes', {
+const Ingredient = sequelize.define('Ingredient', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -9,32 +9,39 @@ const Recipe = sequelize.define('Recipes', {
     autoIncrement: true,
     unique: true,
   },
-  image_url: {
+  image_name: {
     type: DataTypes.TEXT,
     allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
   },
   name: {
     type: DataTypes.STRING,
-    defaultValue: false,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
   },
   slug: {
     type: DataTypes.STRING,
-    defaultValue: false,
-  },
-  preparation: {
-    type: DataTypes.TEXT,
-    defaultValue: false,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
   },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    defaultValue: Sequelize.fn('NOW'),
   },
   updatedAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    defaultValue: Sequelize.fn('NOW'),
   },
+}, {
+  tableName: 'ingredients',
 });
 
-module.exports = Recipe;
+module.exports = Ingredient;

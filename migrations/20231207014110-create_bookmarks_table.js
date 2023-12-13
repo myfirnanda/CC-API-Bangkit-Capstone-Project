@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Recipes', {
+    await queryInterface.createTable('bookmarks', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -11,37 +11,36 @@ module.exports = {
         autoIncrement: true,
         unique: true,
       },
-      image_url: {
-        type: Sequelize.TEXT,
+      user_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
       },
-      name: {
-        type: Sequelize.STRING,
+      recipe_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
-      },
-      slug: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      preparation: {
-        type: Sequelize.TEXT,
-        allowNull: false,
+        references: {
+          model: 'recipes',
+          key: 'id',
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.fn('NOW'),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.fn('NOW'),
       },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('recipes');
+    await queryInterface.dropTable('bookmarks');
   },
 };
