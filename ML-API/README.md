@@ -1,11 +1,10 @@
 
-# My FastAPI Project
+# Recipe Recommendation API
 
-This is a simple FastAPI project structured for a company-level application. The project serves a Hello World message through the API endpoint `/api/hello`.
-
+This is a recipe recommendation API for EatWise mobile application.
 ## Requirements
 
-- Python 3.8+
+- Python 3.10+
 - Pip
 
 ## Installation
@@ -28,7 +27,7 @@ pip install -r requirements.txt
 To run the FastAPI application, use `uvicorn`:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 The application will be available at [http://127.0.0.1:8000/](http://127.0.0.1:8000/). You can access the API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) and the ReDoc at [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc).
