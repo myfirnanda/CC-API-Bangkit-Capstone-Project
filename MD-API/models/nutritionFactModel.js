@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const Category = sequelize.define('Category', {
+const NutritionFact = sequelize.define('NutritionFact', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -9,18 +9,39 @@ const Category = sequelize.define('Category', {
     autoIncrement: true,
     unique: true,
   },
-  name: {
-    type: DataTypes.STRING,
+  calorie_dose: {
+    type: DataTypes.FLOAT,
     allowNull: false,
     validate: {
       notEmpty: true,
+      min: 0,
     },
   },
-  slug: {
-    type: DataTypes.STRING,
+  carbo_dose: {
+    type: DataTypes.FLOAT,
     allowNull: false,
+    validate: {
+      notEmpty: true,
+      min: 0,
+    },
   },
-  user_id: {
+  protein_dose: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+      min: 0,
+    },
+  },
+  fat_dose: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+      min: 0,
+    },
+  },
+  recipe_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -35,7 +56,7 @@ const Category = sequelize.define('Category', {
     defaultValue: Sequelize.fn('NOW'),
   },
 }, {
-  tableName: 'categories',
+  tableName: 'nutrition_facts',
 });
 
-module.exports = Category;
+module.exports = NutritionFact;

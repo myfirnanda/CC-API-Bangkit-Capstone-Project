@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const UserAllergy = sequelize.define('UserAllergy', {
+const Bookmark = sequelize.define('Bookmark', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -13,22 +13,22 @@ const UserAllergy = sequelize.define('UserAllergy', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  allergy_id: {
+  recipe_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    defaultValue: Sequelize.fn('NOW'),
   },
   updatedAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    defaultValue: Sequelize.fn('NOW'),
   },
 }, {
-  tableName: 'user_allergies',
+  tableName: 'bookmarks',
 });
 
-module.exports = UserAllergy;
+module.exports = Bookmark;

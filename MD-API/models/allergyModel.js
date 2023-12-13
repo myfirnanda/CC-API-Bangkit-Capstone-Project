@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const Category = sequelize.define('Category', {
+const Allergy = sequelize.define('Allergy', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -19,6 +19,16 @@ const Category = sequelize.define('Category', {
   slug: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
   },
   user_id: {
     type: DataTypes.INTEGER,
@@ -35,7 +45,7 @@ const Category = sequelize.define('Category', {
     defaultValue: Sequelize.fn('NOW'),
   },
 }, {
-  tableName: 'categories',
+  tableName: 'allergies',
 });
 
-module.exports = Category;
+module.exports = Allergy;

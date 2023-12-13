@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const Category = sequelize.define('Category', {
+const Type = sequelize.define('Type', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -35,7 +35,17 @@ const Category = sequelize.define('Category', {
     defaultValue: Sequelize.fn('NOW'),
   },
 }, {
-  tableName: 'categories',
+  tableName: 'types',
 });
 
-module.exports = Category;
+Type.associate = (models) => {
+  Type.hasMany(models.Recipe, {
+    foreignKey: 'type_id',
+  });
+
+  Type.belongsTo(models.User, {
+    foreignKey: 'type_id',
+  });
+};
+
+module.exports = Type;

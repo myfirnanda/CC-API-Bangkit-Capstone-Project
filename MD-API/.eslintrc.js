@@ -14,5 +14,6 @@ module.exports = {
     'linebreak-style': 0,
     'new-cap': ['error', {capIsNewExceptions: ['ENUM']}],
     'new-cap': 'off',
+    'camelcase': 'off',
   },
 };

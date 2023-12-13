@@ -1,7 +1,7 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const UserAllergy = sequelize.define('UserAllergy', {
+const IngredientAllergy = sequelize.define('IngredientAllergy', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -9,7 +9,7 @@ const UserAllergy = sequelize.define('UserAllergy', {
     autoIncrement: true,
     unique: true,
   },
-  user_id: {
+  ingredient_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -20,15 +20,15 @@ const UserAllergy = sequelize.define('UserAllergy', {
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    defaultValue: Sequelize.fn('NOW'),
   },
   updatedAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    defaultValue: Sequelize.fn('NOW'),
   },
 }, {
-  tableName: 'user_allergies',
+  tableName: 'ingredient_allergies',
 });
 
-module.exports = UserAllergy;
+module.exports = IngredientAllergy;

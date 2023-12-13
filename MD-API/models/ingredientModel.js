@@ -1,13 +1,20 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../utils/database');
 
-const Category = sequelize.define('Category', {
+const Ingredient = sequelize.define('Ingredient', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     allowNull: false,
     autoIncrement: true,
     unique: true,
+  },
+  image_name: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
   },
   name: {
     type: DataTypes.STRING,
@@ -19,10 +26,9 @@ const Category = sequelize.define('Category', {
   slug: {
     type: DataTypes.STRING,
     allowNull: false,
-  },
-  user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -35,7 +41,7 @@ const Category = sequelize.define('Category', {
     defaultValue: Sequelize.fn('NOW'),
   },
 }, {
-  tableName: 'categories',
+  tableName: 'ingredients',
 });
 
-module.exports = Category;
+module.exports = Ingredient;

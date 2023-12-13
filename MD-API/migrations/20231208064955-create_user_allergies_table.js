@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('ingredients', {
+    await queryInterface.createTable('user_allergies', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -11,26 +11,13 @@ module.exports = {
         autoIncrement: true,
         unique: true,
       },
-      image_name: {
-        type: Sequelize.TEXT,
+      user_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
       },
-      name: {
-        type: Sequelize.STRING,
+      allergy_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
-      },
-      slug: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -46,6 +33,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('ingredients');
+    await queryInterface.dropTable('user_allergies');
   },
 };

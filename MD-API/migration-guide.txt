@@ -39,6 +39,12 @@ down: async (queryInterface, Sequelize) => {
 npx sequelize-cli db:migrate:undo:all
 npx sequelize-cli db:migrate
 
+npx sequelize-cli db:migrate:undo --migrations-path ./migrations
+npx sequelize-cli db:migrate --migrations-path ./migrations
+
+npx sequelize-cli db:migrate:undo:all --migrations-path ./migrations
+npx sequelize-cli db:migrate --migrations-path ./migrations
+
 >>> Seeder Cretae New File
 npx sequelize-cli seed:generate --name demo-user
 
@@ -63,3 +69,9 @@ npx sequelize-cli db:seed:all
 
 >>> Seeder Run Single
 npx sequelize-cli db:seed --seed 20231018020503-user-admin
+
+>>> ALL Setup
+npx sequelize-cli db:migrate:undo
+npx sequelize-cli db:migrate
+npx sequelize-cli db:seed:all
+nodemon app

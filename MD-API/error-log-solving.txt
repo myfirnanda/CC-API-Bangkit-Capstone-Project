@@ -1,0 +1,21 @@
+>>> (errno: 150 "Foreign key constraint is incorrectly formed")
+
+Arti: Jika terjadi seperti ini maka coba urutkan tabel migrasinya, pastikan tabel yang tidak bergantung pada tabel lain (tabel indul) yang dieksekusi duluan. misal
+
+User hasMany Post hasMany Comment
+Category hasMany Post
+
+User (Tabel Induk) -< Post (Tabel Anak)
+Post (Tabel Induk) -< Comment (Tabel Anak)
+Category (Tabel Induk) -< Post (Tabel Anak)
+
+maka pastikan tabel induk dieksekusi/dibuat terlebih dahulu, sehingga urutan tabel migrasi adalah: 
+1. user
+2. category
+3. post
+4. comment
+
+>>> Insert Multiple Values with Postman Body > form-data
+You can use JSON.parse() in your code then insert value like JSON normally in postman
+
+>>> Ketika Recipe dihapus maka kolom recipe_ingredients yang berelasi dengan id pada recipes juga ikut terhapus [NOT SOLVED]

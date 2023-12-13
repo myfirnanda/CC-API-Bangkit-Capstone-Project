@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('ingredients', {
+    await queryInterface.createTable('nutrition_facts', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -11,25 +11,44 @@ module.exports = {
         autoIncrement: true,
         unique: true,
       },
-      image_name: {
-        type: Sequelize.TEXT,
+      calorie_dose: {
+        type: Sequelize.FLOAT,
         allowNull: false,
         validate: {
           notEmpty: true,
+          min: 0,
         },
       },
-      name: {
-        type: Sequelize.STRING,
+      carbo_dose: {
+        type: Sequelize.FLOAT,
         allowNull: false,
         validate: {
           notEmpty: true,
+          min: 0,
         },
       },
-      slug: {
-        type: Sequelize.STRING,
+      protein_dose: {
+        type: Sequelize.FLOAT,
         allowNull: false,
         validate: {
           notEmpty: true,
+          min: 0,
+        },
+      },
+      fat_dose: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+          min: 0,
+        },
+      },
+      recipe_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Recipes',
+          key: 'id',
         },
       },
       createdAt: {
@@ -46,6 +65,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('ingredients');
+    await queryInterface.dropTable('nutrition_facts');
   },
 };

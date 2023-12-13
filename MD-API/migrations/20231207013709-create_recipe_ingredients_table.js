@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('ingredients', {
+    await queryInterface.createTable('recipe_ingredients', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -11,26 +11,50 @@ module.exports = {
         autoIncrement: true,
         unique: true,
       },
-      image_name: {
-        type: Sequelize.TEXT,
+      dose: {
+        type: Sequelize.FLOAT,
         allowNull: false,
         validate: {
           notEmpty: true,
+          min: 0,
         },
       },
-      name: {
-        type: Sequelize.STRING,
+      unit: {
+        type: Sequelize.ENUM(
+            'gram',
+            'kilogram',
+            'ounce',
+            'pound',
+            'milliliter',
+            'liter',
+            'teaspoon',
+            'tablespoon',
+            'cup',
+            'piece',
+            'pinch',
+            'dash',
+        ),
         allowNull: false,
         validate: {
           notEmpty: true,
+          min: 0,
         },
       },
-      slug: {
-        type: Sequelize.STRING,
+      isMandatory: {
+        type: Sequelize.BOOLEAN,
         allowNull: false,
         validate: {
           notEmpty: true,
         },
+        defaultValue: true,
+      },
+      recipe_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      ingredient_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -46,6 +70,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('ingredients');
+    await queryInterface.dropTable('recipe_ingredients');
   },
 };
