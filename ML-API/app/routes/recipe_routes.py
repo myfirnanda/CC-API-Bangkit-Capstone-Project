@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from ..utils.models import UserInput, Recipe, RecipeModelData
 from ..utils.data_utils import (
@@ -18,6 +18,11 @@ def get_recipe_data():
 
 @router.post("/recommend-recipes/predict/", response_model=list[Recipe])
 async def recommend_recipes(user_input: UserInput, data: RecipeModelData = Depends(get_recipe_data)):
+    
+    if not (user_input.limit == "all" or (isinstance(user_input.limit, int) and user_input.limit >= 1)):
+        raise HTTPException(status_code=400, detail="Invalid limit value")
+
+    
     user_input_vector = generate_user_input_vector(data.w2v_model, user_input.ingredients)
     top_recipes_titles = recommend_top_recipes(user_input_vector, data.all_recipes_vector, data.data)
     
