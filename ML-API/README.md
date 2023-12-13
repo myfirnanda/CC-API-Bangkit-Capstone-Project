@@ -32,7 +32,15 @@ uvicorn main:app --reload
 
 The application will be available at [http://127.0.0.1:8000/](http://127.0.0.1:8000/). You can access the API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) and the ReDoc at [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc).
 
+## Request body
+```json
+{
+"ingredients": "apple",
+"limit": "all"
+}
+```
+
 ## Endpoints
 
-- `GET /`: Returns a welcome message.
-- `GET /api/hello`: Returns a Hello World message.
+- `GET /main`: Returns a welcome message.
+- `GET /recommen-recipes/predict/`: Returns a recipe recommendation.
