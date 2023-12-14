@@ -1,6 +1,7 @@
 const fs = require('fs');
 const slugify = require('slugify');
 const {Op} = require('sequelize');
+const {Storage} = require('@google-cloud/storage');
 
 const Category = require('../models/categoryModel');
 const Recipe = require('../models/recipeModel');
@@ -38,7 +39,7 @@ exports.getRecipes = async (req, res) => {
     //     id: {
     //       [Op.ne]: recipeIngredient.recipe_id,
     //     },
-    //     isDiary: req.user.isDiary,
+    //     isDairy: req.user.isDairy,
     //   },
     // });
     const userAllergies = await UserAllergy.findAll({
@@ -67,7 +68,7 @@ exports.getRecipes = async (req, res) => {
         id: {
           [Op.notIn]: excludedRecipeIds,
         },
-        isDiary: req.user.isDiary,
+        isDairy: req.user.isDairy,
       },
     });
 
@@ -163,11 +164,39 @@ exports.postAddRecipe = async (req, res) => {
   try {
     const imageName = req.file;
 
+    const storageBucket = 'eatwise-storage-bucket';
+    const storageClient = new Storage({
+      projectId: 'capstone-api-406515',
+      keyFilename: 'eatwise-api-key.json',
+    });
+    const bucket = storageClient.bucket(storageBucket);
+
+    const fileName = `${Date.now()}-${slugify(imageName.originalname,
+        {lower: true},
+    )}`;
+
+    const gcsFile = bucket.file(fileName);
+    const stream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: imageName.mimetype,
+      },
+    });
+
+    stream.on('finish', () => {
+      res.status(200);
+    });
+
+    stream.on('error', (err) => {
+    //   console.error(err);
+    //   const errorMessage = 'Error uploading file to Google Cloud Storage';
+      res.status(500);
+    });
+
     const {
       name,
       description,
       preparation,
-      isDiary,
+      isDairy,
       type_id,
       category_id,
       calorie_dose,
@@ -180,11 +209,11 @@ exports.postAddRecipe = async (req, res) => {
     const slug = slugify(name, {lower: true});
 
     const recipe = await Recipe.create({
-      image_name: imageName.filename,
+      image_name: imageName.originalname,
       name,
       description,
       preparation,
-      isDiary,
+      isDairy,
       slug,
       user_id: req.user.id,
       type_id,
@@ -229,6 +258,7 @@ exports.postAddRecipe = async (req, res) => {
     const recipeIngredients = await RecipeIngredient
         .bulkCreate(recipeIngredientsData);
 
+    stream.end(imageName.buffer);
     return res.status(201).json({
       success: true,
       message: 'Successful Add New Recipe',
@@ -237,7 +267,7 @@ exports.postAddRecipe = async (req, res) => {
         slug,
         description,
         preparation,
-        isDiary,
+        isDairy,
         user_id: req.user.id,
         type_id,
         category_id,
@@ -444,7 +474,10 @@ exports.patchEditRecipe = async (req, res) => {
         unit,
         ingredient_id,
       })),
-      file: req.file,
+      file: {
+        publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
+        images: req.file,
+      },
     });
   } catch (error) {
     return res.status(500).json({
