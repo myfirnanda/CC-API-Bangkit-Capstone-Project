@@ -127,3 +127,7 @@ User.hasMany(Post, {
 sequelize.sync({ force: true }).then(() => {
   console.log('Database and tables created!');
 });
+
+isDairy? apakah mengonsumsi produk isDairy
+true: tampilkan Semua recipes
+false: tampilkan semua recipes where isDairy: false

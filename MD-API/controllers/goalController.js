@@ -75,7 +75,7 @@ exports.postGoal = async (req, res) => {
     });
 
     return res.status(201).json({
-      success: 'success',
+      success: true,
       message: 'Successful Add New Goal',
       data: {
         name,
@@ -118,7 +118,7 @@ exports.getEditGoal = async (req, res) => {
       });
     }
 
-    return status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Successful Get Edit Goal',
     });
@@ -166,7 +166,7 @@ exports.patchEditGoal = async (req, res) => {
     duration_month: dueDate.format('YYYY-MM-DD HH:mm:ss'),
     target_calorie,
   }, {
-    where: {id: req.user.id},
+    where: {slug: goalSlug},
   });
 
   return res.status(200).json({
@@ -179,7 +179,7 @@ exports.deleteGoal = async (req, res) => {
   try {
     const {goalSlug} = req.params;
 
-    const goal = Goal.findOne({where: {slug: goalSlug}});
+    const goal = await Goal.findOne({where: {slug: goalSlug}});
 
     if (!goal) {
       return res.status(400).json({
