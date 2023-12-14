@@ -1,3 +1,8 @@
-# requirements.txt
-fastapi==0.74.0
-uvicorn==0.15.0
+uvicorn
+gensim
+numpy
+scikit-learn
+nltk
+python-dotenv
+pandas
+fastapi
