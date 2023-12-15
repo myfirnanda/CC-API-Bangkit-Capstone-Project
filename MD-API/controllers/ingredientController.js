@@ -2,17 +2,9 @@ const fs = require('fs');
 const slugify = require('slugify');
 
 const Ingredient = require('../models/ingredientModel');
-const Recipe = require('../models/recipeModel');
 
-exports.getIngredients = async (req, res) => {
+exports.getIngredients = (req, res) => {
   try {
-    const ingredients = await Ingredient.findAll({
-      include: {
-        model: Recipe,
-        as: 'recipes',
-      },
-    });
-
     return res.status(200).json({
       success: true,
       message: 'Successful Get All Ingredients',
@@ -33,10 +25,6 @@ exports.getIngredient = async (req, res) => {
 
     const ingredient = await Ingredient.findOne({
       where: {slug: ingredientSlug},
-      include: {
-        model: Recipe,
-        as: 'recipes',
-      },
     });
 
     if (!ingredient) {
@@ -77,6 +65,23 @@ exports.getAddIngredient = (req, res) => {
 
 exports.postAddIngredient = async (req, res) => {
   try {
+    const {
+      name,
+    } = req.body;
+
+    const existingIngredient = await Ingredient.findOne({
+      where: {name},
+    });
+
+    if (existingIngredient) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ingredient Already Exist!',
+      });
+    }
+
+    const slug = slugify(name, {lower: true});
+
     const imageName = req.file;
 
     if (!imageName) {
@@ -86,21 +91,39 @@ exports.postAddIngredient = async (req, res) => {
       });
     }
 
-    const {
-      name,
-      isVegan,
-      isMandatory,
-    } = req.body;
+    const storageBucket = 'eatwise-storage-bucket';
+    const storageClient = new Storage({
+      projectId: 'capstone-api-406515',
+      keyFilename: 'eatwise-api-key.json',
+    });
+    const bucket = storageClient.bucket(storageBucket);
 
-    const slug = slugify(name, {lower: true});
+    const fileName = `${Date.now()}-${slugify(imageName.originalname,
+        {lower: true},
+    )}`;
+
+    const gcsFile = bucket.file(fileName);
+    const stream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: imageName.mimetype,
+      },
+    });
+
+    stream.on('finish', () => {
+      res.status(200);
+    });
+
+    stream.on('error', () => {
+      res.status(500);
+    });
 
     await Ingredient.create({
       image_name: imageName.filename,
       name,
       slug,
-      isVegan,
-      isMandatory,
     });
+
+    stream.end(imageName.buffer);
 
     return res.status(201).json({
       success: true,
@@ -174,6 +197,23 @@ exports.patchEditIngredient = async (req, res) => {
       });
     }
 
+    const {
+      name,
+    } = req.body;
+
+    const existingIngredient = await Ingredient.findOne({
+      where: {name},
+    });
+
+    if (existingIngredient) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ingredient Already Exist!',
+      });
+    }
+
+    const slug = slugify(name, {lower: true});
+
     const imageName = req.file;
 
     const oldImage = ingredient.image_name;
@@ -186,20 +226,10 @@ exports.patchEditIngredient = async (req, res) => {
       });
     }
 
-    const {
-      name,
-      isVegan,
-      isMandatory,
-    } = req.body;
-
-    const slug = slugify(name, {lower: true});
-
     await ingredient.update({
       image_name: newImage,
       name,
       slug,
-      isVegan,
-      isMandatory,
     }, {
       where: {user_id: req.user_id},
     });

@@ -15,6 +15,7 @@ const Goal = sequelize.define('goal', {
     validate: {
       notEmpty: true,
     },
+    unique: true,
   },
   slug: {
     type: DataTypes.STRING,

@@ -25,7 +25,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 3 * 1024 * 1024,
   },
 });
 
@@ -48,7 +48,12 @@ router.get('/', isAuth, getRecipes);
 router.get('/add', isAdmin, getAddRecipe);
 router.post('/add', isAdmin, upload.single('image_name'), postAddRecipe);
 router.get('/:recipeSlug/edit', isAdmin, getEditRecipe);
-router.patch('/:recipeSlug/edit', isAdmin, patchEditRecipe);
+router.patch(
+    '/:recipeSlug/edit',
+    upload.single('image_name'),
+    isAdmin,
+    patchEditRecipe,
+);
 router.delete('/:recipeSlug', isAdmin, deleteRecipe);
 router.post('/:recipeSlug/bookmark', isAuth, postRecipeBookmark);
 router.post('/:recipeSlug/activity', isAuth, postRecipeActivity);

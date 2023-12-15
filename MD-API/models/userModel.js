@@ -18,6 +18,7 @@ const User = sequelize.define('User', {
     validate: {
       notEmpty: true,
     },
+    unique: true,
   },
   slug: {
     type: DataTypes.STRING,

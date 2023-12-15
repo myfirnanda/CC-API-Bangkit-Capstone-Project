@@ -33,9 +33,9 @@ const {
 const {isAuth} = require('../middlewares/isAuth');
 
 router.get('/signup', getSignup);
-router.post('/signup', postSignup);
+router.post('/signup', upload.single('profile_image'), postSignup);
 router.get('/login', getLogin);
-router.post('/login', upload.single('profile_image'), postLogin);
+router.post('/login', postLogin);
 router.post('/logout', isAuth, postLogout);
 
 module.exports = router;

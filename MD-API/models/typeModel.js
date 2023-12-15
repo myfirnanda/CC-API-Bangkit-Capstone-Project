@@ -15,6 +15,7 @@ const Type = sequelize.define('Type', {
     validate: {
       notEmpty: true,
     },
+    unique: true,
   },
   slug: {
     type: DataTypes.STRING,

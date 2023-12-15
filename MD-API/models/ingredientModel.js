@@ -22,6 +22,7 @@ const Ingredient = sequelize.define('Ingredient', {
     validate: {
       notEmpty: true,
     },
+    unique: true,
   },
   slug: {
     type: DataTypes.STRING,

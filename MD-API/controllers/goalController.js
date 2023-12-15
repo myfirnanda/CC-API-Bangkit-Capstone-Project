@@ -2,11 +2,30 @@ const slugify = require('slugify');
 const moment = require('moment');
 
 const Goal = require('../models/goalModel');
+const Recipe = require('../models/recipeModel');
 
 exports.getGoals = async (req, res) => {
   try {
     const goals = await Goal.findAll({
       where: {user_id: req.user.id},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+            },
+          ],
+        },
+      ],
     });
 
     return res.status(200).json({
@@ -29,6 +48,24 @@ exports.getGoal = async (req, res) => {
 
     const goal = await Goal.findOne({
       where: {slug: goalSlug},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+            },
+          ],
+        },
+      ],
     });
 
     if (!goal) {
@@ -59,6 +96,17 @@ exports.postGoal = async (req, res) => {
       duration_month,
       target_calorie,
     } = req.body;
+
+    const existingGoal = await Goal.findOne({
+      where: {name},
+    });
+
+    if (existingGoal) {
+      return res.status(400).json({
+        success: false,
+        message: 'Goal Already Exist!',
+      });
+    }
 
     const slug = slugify(name, {lower: true});
 
@@ -155,6 +203,17 @@ exports.patchEditGoal = async (req, res) => {
     duration_month,
     target_calorie,
   } = req.body;
+
+  const existingGoal = await Goal.findOne({
+    where: {name},
+  });
+
+  if (existingGoal) {
+    return res.status(400).json({
+      success: false,
+      message: 'Goal Already Exist!',
+    });
+  }
 
   const slug = slugify(name, {lower: true});
 

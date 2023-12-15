@@ -17,6 +17,7 @@ module.exports = {
         validate: {
           notEmpty: true,
         },
+        unique: true,
       },
       slug: {
         type: Sequelize.STRING,

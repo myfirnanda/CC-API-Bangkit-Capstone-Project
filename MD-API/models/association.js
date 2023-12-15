@@ -68,7 +68,7 @@ const associateModels = () => {
   User.hasMany(Type, {foreignKey: 'user_id'});
   User.belongsToMany(Bookmark, {
     foreignKey: 'user_id',
-    through: 'user_id',
+    through: 'Bookmark',
   });
   User.hasMany(Activity, {
     foreignKey: 'user_id',

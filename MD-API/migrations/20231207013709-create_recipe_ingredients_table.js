@@ -22,13 +22,13 @@ module.exports = {
       unit: {
         type: Sequelize.ENUM(
             'gram',
-            'kilogram',
+            'kg',
             'ounce',
             'pound',
-            'milliliter',
+            'ml',
             'liter',
-            'teaspoon',
-            'tablespoon',
+            'tsp',
+            'tbsp',
             'cup',
             'piece',
             'pinch',
@@ -51,10 +51,18 @@ module.exports = {
       recipe_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'recipes',
+          key: 'id',
+        },
       },
       ingredient_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'ingredients',
+          key: 'id',
+        },
       },
       createdAt: {
         type: Sequelize.DATE,

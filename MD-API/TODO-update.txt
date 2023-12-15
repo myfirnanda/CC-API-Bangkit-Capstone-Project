@@ -1,0 +1,7 @@
+>>> onDelete CASCADE Sequelize
+penggunaan onDelete cascade pada sequelize tidak work, sehingga sementara ini pada file recipe dan profile bagian delete saya melakukannya secara manual, yakni dengan find setiap model where kondisi tertentu, saya harap kedepannya bisa menggunakan onDelete CASCADE.
+
+>>> PATCH edit yang melibatkan upload gambar
+Sejauh ini masih stuck dan mengalami problem
+
+>>> Halaman Admin pada Category, Type, Ingredient, dll selain recipe masih belum di sempurnakan dan butuh ekstra update apabila diperlukan, terutama masalah upload gambar.

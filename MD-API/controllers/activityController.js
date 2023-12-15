@@ -1,5 +1,10 @@
 const moment = require('moment');
+const {Op} = require('sequelize');
 
+const Category = require('../models/categoryModel');
+const Type = require('../models/typeModel');
+const NutritionFact = require('../models/nutritionFactModel');
+const Recipe = require('../models/recipeModel');
 const Activity = require('../models/activityModel');
 const Goal = require('../models/goalModel');
 
@@ -7,6 +12,25 @@ exports.getActivities = async (req, res) => {
   try {
     const activities = await Activity.findAll({
       where: {user_id: req.user.id},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+              attributes: ['calorie_dose'],
+            },
+          ],
+        },
+      ],
     });
 
     return res.status(200).json({
@@ -29,6 +53,25 @@ exports.getActivity =async (req, res) => {
 
     const activity = await Activity.findOne({
       where: {id: activityId},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+              attributes: ['calorie_dose'],
+            },
+          ],
+        },
+      ],
     });
 
     if (!activity) {
@@ -105,21 +148,42 @@ exports.deleteActivity = async (req, res) => {
 exports.getActivityByDate = async (req, res) => {
   try {
     const {date} = req.query;
-    const parsedDate = parseInt(date);
+    let queryDate = moment();
 
-    if (isNaN(parsedDate)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid date format. Please provide a valid number for date.',
-      });
+    console.log(queryDate);
+    if (date) {
+      const offset = parseInt(date);
+      queryDate = moment().add(offset, 'days');
     }
 
-    const requestDate = date ?
-    moment().add(parseInt(parsedDate), 'days') :
-    moment();
-
+    console.log(queryDate);
+    console.log(queryDate.toDate());
     const activities = await Activity.findAll({
-      where: {date: requestDate.toDate()},
+      where: {
+        date: {
+          [Op.gte]: moment(queryDate).startOf('day').toDate(),
+          [Op.lt]: moment(queryDate).endOf('day').toDate(),
+        },
+        include: [
+          {
+            model: Recipe,
+            include: [
+              {
+                model: Category,
+                attributes: ['name'],
+              },
+              {
+                model: Type,
+                attributes: ['name'],
+              },
+              {
+                model: NutritionFact,
+                attributes: ['calorie_dose'],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     return res.status(200).json({

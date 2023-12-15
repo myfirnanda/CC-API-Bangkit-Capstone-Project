@@ -22,6 +22,7 @@ const Recipe = sequelize.define('Recipe', {
     validate: {
       notEmpty: true,
     },
+    unique: true,
   },
   slug: {
     type: DataTypes.STRING,
@@ -46,6 +47,10 @@ const Recipe = sequelize.define('Recipe', {
     allowNull: false,
     validate: {
       notEmpty: true,
+    },
+    references: {
+      model: 'users',
+      key: 'id',
     },
   },
   user_id: {

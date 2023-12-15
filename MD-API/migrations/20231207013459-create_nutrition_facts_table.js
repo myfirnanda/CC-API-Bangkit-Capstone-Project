@@ -47,7 +47,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Recipes',
+          model: 'recipes',
           key: 'id',
         },
       },

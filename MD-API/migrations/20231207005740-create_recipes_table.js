@@ -24,6 +24,7 @@ module.exports = {
         validate: {
           notEmpty: true,
         },
+        unique: true,
       },
       slug: {
         type: Sequelize.STRING,
@@ -54,7 +55,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users',
+          model: 'users',
           key: 'id',
         },
       },
@@ -62,7 +63,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Types',
+          model: 'types',
           key: 'id',
         },
       },
@@ -70,7 +71,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Categories',
+          model: 'categories',
           key: 'id',
         },
       },
@@ -78,7 +79,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: null,
         references: {
-          model: 'Activities',
+          model: 'activities',
           key: 'id',
         },
       },

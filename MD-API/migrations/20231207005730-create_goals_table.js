@@ -17,6 +17,7 @@ module.exports = {
         validate: {
           notEmpty: true,
         },
+        unique: true,
       },
       slug: {
         type: Sequelize.STRING,
@@ -76,7 +77,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users',
+          model: 'users',
           key: 'id',
         },
       },

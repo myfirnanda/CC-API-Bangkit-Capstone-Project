@@ -1,7 +1,7 @@
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
-// const {Storage} = require('@google-cloud/storage');
+const {Storage} = require('@google-cloud/storage');
 
 const User = require('../models/userModel');
 
@@ -30,34 +30,6 @@ exports.postSignup = async (req, res) => {
       isDairy,
     } = req.body;
 
-    // const profileImage = req.file;
-
-    // const storageBucket = 'eatwise-storage-bucket';
-    // const storageClient = new Storage({
-    //   projectId: 'capstone-api-406515',
-    //   keyFilename: 'eatwise-api-key.json',
-    // });
-    // const bucket = storageClient.bucket(storageBucket);
-
-    // const fileName = `${Date.now()}-${slugify(profileImage.originalname,
-    //     {lower: true},
-    // )}`;
-
-    // const gcsFile = bucket.file(fileName);
-    // const stream = gcsFile.createWriteStream({
-    //   metadata: {
-    //     contentType: profileImage.mimetype,
-    //   },
-    // });
-
-    // stream.on('finish', () => {
-    //   res.status(200);
-    // });
-
-    // stream.on('error', () => {
-    //   res.status(500);
-    // });
-
     const slug = slugify(name, {lower: true});
 
     const existingUser = await User.findOne({
@@ -71,13 +43,42 @@ exports.postSignup = async (req, res) => {
       });
     }
 
+    const profileImage = req.file;
+
+    const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+    const storageClient = new Storage({
+      projectId: process.env.GCP_PROJECT_ID,
+      keyFilename: process.env.GCP_KEY_FILENAME,
+    });
+    const bucket = storageClient.bucket(storageBucket);
+
+    const fileName = `${Date.now()}-${slugify(profileImage.originalname,
+        {lower: true},
+    )}`;
+
+    const gcsFile = bucket.file(fileName);
+    const stream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: profileImage.mimetype,
+      },
+      predefinedAcl: 'publicRead',
+    });
+
+    stream.on('finish', () => {
+      res.status(200);
+    });
+
+    stream.on('error', () => {
+      res.status(500);
+    });
+
     const saltRounds = 10;
     const hashedPassword = await bcryptjs.hash(password, saltRounds);
 
-    // const isProfileImage = profileImage ? profileImage.filename : '';
+    const isProfileImage = profileImage ? profileImage.filename : '';
 
     await User.create({
-      // profile_image: isProfileImage,
+      profile_image: isProfileImage,
       name,
       slug,
       email,
@@ -87,13 +88,15 @@ exports.postSignup = async (req, res) => {
       isDairy,
     });
 
-    // stream.end(profileImage.buffer);
+    stream.end(profileImage.buffer);
 
     return res.status(201).json({
       success: true,
       message: 'Successful Signup!',
       data: req.body,
-      file: req.file,
+      file: {
+        publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
+      },
     });
   } catch (error) {
     return res.status(500).json({

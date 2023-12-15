@@ -29,6 +29,9 @@ const Bookmark = sequelize.define('Bookmark', {
   },
 }, {
   tableName: 'bookmarks',
+  defaultScope: {
+    attributes: {exclude: ['BookmarkId']},
+  },
 });
 
 module.exports = Bookmark;
