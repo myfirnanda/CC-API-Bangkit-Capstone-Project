@@ -22,7 +22,7 @@ model = TFModel()
 def get_model():
     return model
 
-@router.post("ingredients/upload-multiple/", response_model=Ingredients)
+@router.post("/ingredients/upload-multiple", response_model=Ingredients)
 async def create_upload_files(files: List[UploadFile] = File(...), model: TFModel = Depends(get_model)):
     all_results = []
 
@@ -54,7 +54,7 @@ async def create_upload_files(files: List[UploadFile] = File(...), model: TFMode
             else:
                 combined_results[key] = value
 
-    req_body = {"ingredients": " ".join(combined_results.keys()), "limit": "all"}
+    req_body = {"ingredients": " ".join([item.lower() for item in combined_results.keys()]), "limit": "all"}
     RECIPE_API_URL = os.getenv('RECIPE_API_URL')
 
     async with httpx.AsyncClient() as client:
