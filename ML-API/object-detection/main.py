@@ -8,5 +8,5 @@ app.include_router(object_routes)
 @app.get("/main")
 async def helloWorld():
     return {
-        "message": "Welcome to EatWise Recipe Recommendation API"
+        "message": "Welcome to EatWise Recipe Ingredients Detection API"
     }

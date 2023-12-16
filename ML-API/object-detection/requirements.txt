@@ -2,3 +2,5 @@ opencv-python
 tensorflow
 numpy
 python-multipart
+httpx
+python-dotenv

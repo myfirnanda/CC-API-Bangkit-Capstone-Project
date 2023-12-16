@@ -1,136 +1,69 @@
 import cv2
 import numpy as np
-import tensorflow as tf
-import requests
-
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 import uuid
+import os
+from typing import List
+from dotenv import load_dotenv
+load_dotenv()
 
-from ..utils.object_utils import LetterBox, xywh2xyxy, scale_boxes
+from ..utils.object_utils import (
+    TFModel, process_image, 
+    model_inference,post_process
+    )
+from ..utils.models import Ingredients
 
 
 router = APIRouter()
 
-interpreter = tf.lite.Interpreter("app/ml/YOLO_V8s.tflite")
-interpreter.allocate_tensors()
 
+model = TFModel()
+def get_model():
+    return model
 
+@router.post("ingredients/upload-multiple/", response_model=Ingredients)
+async def create_upload_files(files: List[UploadFile] = File(...), model: TFModel = Depends(get_model)):
+    all_results = []
 
-@router.post("/upload/")
-async def cread_upload_file(file: UploadFile = File(...)):
-    file.filename = f"{uuid.uuid4()}.jpg"
-    contens = await file.read()
+    for file in files:
+        file.filename = f"{uuid.uuid4()}.jpg"
+        contents = await file.read()
+
+        numpy_image = np.frombuffer(contents, np.uint8)
+        bgr_image = cv2.imdecode(numpy_image, cv2.IMREAD_COLOR)
+        processed_image = process_image(bgr_image)
+        output_data = model_inference(model, processed_image)
+        results = post_process(output_data)
+
+        if not results:
+            continue  # Skip files with no detected objects
+
+        final_result = {label["class_name"]: label["confidence"] for label in results}
+        all_results.append(final_result)
+
+    if not all_results:
+        raise HTTPException(status_code=400, detail="No objects detected in any of the images")
+
+    # Combine results from all images
+    combined_results = {}
+    for result in all_results:
+        for key, value in result.items():
+            if key in combined_results:
+                combined_results[key] = max(combined_results[key], value)  # or some other logic to combine
+            else:
+                combined_results[key] = value
+
+    req_body = {"ingredients": " ".join(combined_results.keys()), "limit": "all"}
+    RECIPE_API_URL = os.getenv('RECIPE_API_URL')
+
+    async with httpx.AsyncClient() as client:
+        rec_response = await client.post(RECIPE_API_URL, json=req_body)
+
+    return {"ingredients": combined_results, "recommendations": rec_response.json()}
         
-    numpy_image = np.frombuffer(contens, np.uint8)
+
     
-    bgr_image = cv2.imdecode(numpy_image, cv2.IMREAD_COLOR)
-
-    im = [LetterBox(640, auto=False, stride=16)(image=bgr_image)]
-    im = np.stack(im)
-    im = im[..., ::-1].transpose((0, 1, 2, 3))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
-    im = np.ascontiguousarray(im)  # contiguous
-    im = im.astype(np.float32)
-    im /= 255
-    
-    # Set input tensor
-    input_details = interpreter.get_input_details()
-    interpreter.set_tensor(input_details[0]['index'], im)
-    
-    interpreter.invoke()
-
-    # Process output data
-    output_details = interpreter.get_output_details()
-    output_data = interpreter.get_tensor(output_details[0]['index'])
-
-# Post-process output_data to get predictions
-    nc = 0
-    conf_thres = 0.01
-    bs = output_data.shape[0]
-    nc = nc or (output_data.shape[1] - 4)
-    nm = output_data.shape[1] - nc - 4
-    mi = 4 + nc
-    xc = np.amax(output_data[:, 4:mi], 1) > conf_thres
-
-    multi_label = False
-    multi_label &= nc > 1
-
-    prediction = np.transpose(output_data, (0, -1, -2))
-    prediction[..., :4] = xywh2xyxy(prediction[..., :4])
-    output = [np.zeros((0, 6 + nm))] * bs
-
-    max_nms = 30000
-    agnostic = False
-    max_wh = 7680
-    iou_thres = 0.5
-    max_det = 300
-
-    for xi, x in enumerate(prediction):
-        x = x[xc[xi]]
-
-        if not x.shape[0]:
-            continue
-
-        box = x[:, :4]
-        cls = x[:, 4:4 + nc]
-        mask = x[:, 4 + nc:4 + nc + nm]
-
-        conf = np.max(cls, axis=1, keepdims=True)
-        j = np.argmax(cls, axis=1, keepdims=True)
-
-        x = np.concatenate((box, conf, j.astype(float), mask), axis=1)
-
-        conf_flat = conf.flatten()
-        filtered_x = x[conf_flat > conf_thres]
-
-        n = filtered_x.shape[0]
-
-        if not n:
-            continue
-        if n > max_nms:
-            sorted_indices = np.argsort(x[:, 4])[::-1]
-            x = x[sorted_indices[:max_nms]]
-
-        c = x[:, 5:6] * (0 if agnostic else max_wh)
-        boxes, scores = x[:, :4] + c, x[:, 4]
-        i = cv2.dnn.NMSBoxes(boxes, scores, score_threshold=0.01, nms_threshold=iou_thres)
-        i = i[:max_det]
-        output[xi] = x[i]
-
-    results = []
-    class_names = [
-        "Egg", "Tomato", "Zucchini", "Almond", "Apple", "Banana", "Broccoli",
-        "Butter", "Cabbage", "Carrot", "Cauliflower", "Cheese", "Cherry",
-        "Chili", "Coconut", "Cucumber", "Dark-Chocolate", "Eggplant", "Grape",
-        "Kiwi", "Mango", "Melon", "Orange", "Pear", "Pineapple", "Pomegranate",
-        "Potato", "Strawberry", "Wallnut", "Watermelon", "White-Chocolate"
-    ]  
-    
-    for result in output:
-        for detection in result:
-            _, _, _, _, conf, class_id = detection
-            class_name = class_names[int(class_id)]
-            results.append({"class_name": class_name, "confidence": conf})
-
-    final_result = {}
-    for label in results:
-        print(f"{label['class_name']}: {label['confidence']:.2f}") 
-        
-        final_result[label["class_name"]] = label["confidence"]
-    
-    print(" ".join(final_result.keys()))
-    r = "https://eatwise-recipe-recommendation-api-j4c7qkx47q-et.a.run.app/recommend-recipes/predict/"
-    req_body = {
-        "ingredients": " ".join(final_result.keys()),
-        "limit": 5
-    }
-    
-    rec_recommend = requests.post(r, json=req_body)
-    print(rec_recommend.json())
-    
-    return final_result
-        
-    # return decoded_image
-
 
     
     
