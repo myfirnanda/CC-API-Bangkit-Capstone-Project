@@ -1,74 +1,48 @@
-const fs = require('fs');
+// const fs = require('fs');
 const slugify = require('slugify');
 const {Op} = require('sequelize');
+const {Storage} = require('@google-cloud/storage');
 
-const Category = require('../models/categoryModel');
 const Recipe = require('../models/recipeModel');
 const NutritionFact = require('../models/nutritionFactModel');
 const RecipeIngredient = require('../models/recipeIngredientsModel');
 const Bookmark = require('../models/bookmarkModel');
 const Activity = require('../models/activityModel');
-const Ingredient = require('../models/ingredientModel');
-const Type = require('../models/typeModel');
 const Goal = require('../models/goalModel');
-const IngredientAllergy = require('../models/ingredientAllergyModel');
-const UserAllergy = require('../models/userAllergyModel');
+const Category = require('../models/categoryModel');
+const Type = require('../models/typeModel');
+const Ingredient = require('../models/ingredientModel');
 
 exports.getRecipes = async (req, res) => {
   try {
     const {search} = req.query;
 
-    // const userAllergies = await UserAllergy.findAll({
-    //   where: {user_id: req.user.id},
-    // });
+    const whereCondition = {
+      name: {
+        [Op.like]: `%${search}%`,
+      },
+    };
 
-    // const ingredientAllergies = await IngredientAllergy.findAll({
-    //   where: {allergy_id: userAllergies.allergy_id},
-    // });
-
-    // const recipeIngredient = await RecipeIngredient.findAll({
-    //   where: {ingredient_id: ingredientAllergies.ingredient_id},
-    // });
-
-    // const recipes = await Recipe.findAll({
-    //   where: {
-    //     name: {
-    //       [Op.like]: `%${search}%`,
-    //     },
-    //     id: {
-    //       [Op.ne]: recipeIngredient.recipe_id,
-    //     },
-    //     isDiary: req.user.isDiary,
-    //   },
-    // });
-    const userAllergies = await UserAllergy.findAll({
-      where: {user_id: req.user.id},
-    });
-
-    const allergyIds = userAllergies.map((allergy) => allergy.allergy_id);
-
-    const ingredientAllergies = await IngredientAllergy.findAll({
-      where: {allergy_id: allergyIds},
-    });
-
-    const ingredientIds = ingredientAllergies.map((ingredient) => ingredient.ingredient_id);
-
-    const recipeIngredient = await RecipeIngredient.findAll({
-      where: {ingredient_id: ingredientIds},
-    });
-
-    const excludedRecipeIds = recipeIngredient.map((recipe) => recipe.recipe_id);
+    if (req.user.isDairy == false) {
+      whereCondition.isDairy = req.user.isDairy;
+    }
 
     const recipes = await Recipe.findAll({
-      where: {
-        name: {
-          [Op.like]: `%${search}%`,
+      where: whereCondition,
+      include: [
+        {
+          model: Category,
+          attributes: ['name'],
         },
-        id: {
-          [Op.notIn]: excludedRecipeIds,
+        {
+          model: Type,
+          attributes: ['name'],
         },
-        isDiary: req.user.isDiary,
-      },
+        {
+          model: NutritionFact,
+          attributes: ['calorie_dose'],
+        },
+      ],
     });
 
     return res.status(200).json({
@@ -95,19 +69,18 @@ exports.getRecipe = async (req, res) => {
       include: [
         {
           model: Category,
-          as: 'categories',
+          attributes: ['name'],
         },
         {
           model: Type,
-          as: 'types',
+          attributes: ['name'],
         },
         {
           model: NutritionFact,
-          as: 'nutritionFacts',
         },
         {
-          model: Ingredient,
-          as: 'ingredients',
+          model: RecipeIngredient,
+          include: [Ingredient],
         },
       ],
     });
@@ -130,25 +103,22 @@ exports.getRecipe = async (req, res) => {
       message: 'Internal Server Error',
       error: error.message,
     });
-  };
+  }
 };
+
 
 exports.getAddRecipe = async (req, res) => {
   try {
-    const categories = await Category.findAll();
-    const types = await Type.findAll();
-    const ingredients = await Ingredient.findAll();
-    const nutritionFacts = await NutritionFact.findAll();
+    const Category = await Category.findAll();
+    const Type = await Type.findAll();
+    const Ingredient = await Ingredient.findAll();
 
     return res.status(200).json({
       success: true,
       message: 'Successful Get Add Recipe',
-      data: {
-        categories,
-        types,
-        ingredients,
-        nutritionFacts,
-      },
+      Category,
+      Type,
+      Ingredient,
     });
   } catch (error) {
     return res.status(500).json({
@@ -161,13 +131,11 @@ exports.getAddRecipe = async (req, res) => {
 
 exports.postAddRecipe = async (req, res) => {
   try {
-    const imageName = req.file;
-
     const {
       name,
       description,
       preparation,
-      isDiary,
+      isDairy,
       type_id,
       category_id,
       calorie_dose,
@@ -179,12 +147,52 @@ exports.postAddRecipe = async (req, res) => {
 
     const slug = slugify(name, {lower: true});
 
+    const existingRecipe = await Recipe.findOne({
+      where: {name},
+    });
+
+    if (existingRecipe) {
+      return res.status(400).json({
+        success: false,
+        message: 'Recipe Already Exist!',
+      });
+    }
+
+    const imageName = req.file;
+
+    const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+    const storageClient = new Storage({
+      projectId: process.env.GCP_PROJECT_ID,
+      keyFilename: process.env.GCP_KEY_FILENAME,
+    });
+    const bucket = storageClient.bucket(storageBucket);
+
+    const fileName = `${Date.now()}-${slugify(imageName.originalname,
+        {lower: true},
+    )}`;
+
+    const gcsFile = bucket.file(fileName);
+    const stream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: imageName.mimetype,
+      },
+      predefinedAcl: 'publicRead',
+    });
+
+    stream.on('finish', () => {
+      res.status(200);
+    });
+
+    stream.on('error', () => {
+      res.status(500);
+    });
+
     const recipe = await Recipe.create({
-      image_name: imageName.filename,
+      image_name: fileName,
       name,
       description,
       preparation,
-      isDiary,
+      isDairy,
       slug,
       user_id: req.user.id,
       type_id,
@@ -219,15 +227,19 @@ exports.postAddRecipe = async (req, res) => {
       dose,
       unit,
       ingredient_id,
+      isMandatory,
     }) => ({
       dose,
       unit,
       recipe_id: recipe.id,
       ingredient_id,
+      isMandatory,
     }));
 
     const recipeIngredients = await RecipeIngredient
         .bulkCreate(recipeIngredientsData);
+
+    stream.end(imageName.buffer);
 
     return res.status(201).json({
       success: true,
@@ -237,7 +249,7 @@ exports.postAddRecipe = async (req, res) => {
         slug,
         description,
         preparation,
-        isDiary,
+        isDairy,
         user_id: req.user.id,
         type_id,
         category_id,
@@ -252,12 +264,16 @@ exports.postAddRecipe = async (req, res) => {
         dose,
         unit,
         ingredient_id,
+        isMandatory,
       }) => ({
         dose,
         unit,
         ingredient_id,
+        isMandatory,
       })),
-      file: req.file,
+      file: {
+        publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -269,6 +285,55 @@ exports.postAddRecipe = async (req, res) => {
 };
 
 exports.getEditRecipe = async (req, res) => {
+  try {
+    const {recipeSlug} = req.params;
+
+    const recipe = await Recipe.findOne({
+      where: {slug: recipeSlug},
+      include: [
+        {
+          model: Category,
+          attributes: ['name'],
+        },
+        {
+          model: Type,
+          attributes: ['name'],
+        },
+        {
+          model: RecipeIngredient,
+          include: [Ingredient],
+        },
+      ],
+    });
+
+    if (!recipe) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recipe Not Found!',
+      });
+    }
+
+    if (recipe.user_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. You are not authenticated as this user',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Successful Get Edit Recipe',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
+exports.patchEditRecipe = async (req, res) => {
   try {
     const {recipeSlug} = req.params;
 
@@ -290,64 +355,6 @@ exports.getEditRecipe = async (req, res) => {
       });
     }
 
-    const categories = await Category.findAll();
-    const types = await Type.findAll();
-    const ingredients = await Ingredient.findAll();
-    const nutritionFacts = await NutritionFact.findAll();
-
-    return res.status(200).json({
-      success: true,
-      message: 'Successful Get Edit Recipe',
-      data: {
-        categories,
-        types,
-        ingredients,
-        nutritionFacts,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server Error',
-      error: error.message,
-    });
-  }
-};
-
-exports.patchEditRecipe = async (req, res) => {
-  try {
-    const recipeSlug = req.params.recipeSlug;
-
-    const recipe = await Recipe.findOne({
-      where: {slug: recipeSlug},
-    });
-
-    if (!recipe) {
-      return res.status(404).json({
-        success: false,
-        message: 'Recipe Not Found!',
-      });
-    }
-
-    if (recipe.user_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Forbidden. You are not authenticated as this user',
-      });
-    }
-
-    const imageName = req.file;
-
-    const oldImage = ingredient.image_name;
-    const newImage = imageName ? imageName.filename : oldImage;
-
-    if (imageName) {
-      fs.unlink(`./storage/images/recipes/${oldImage}`, (err) => {
-        if (err) throw err;
-        console.log(`${oldImage} was deleted`);
-      });
-    }
-
     const {
       name,
       description,
@@ -361,7 +368,57 @@ exports.patchEditRecipe = async (req, res) => {
       ingredients,
     } = req.body;
 
+    const existingRecipe = await Recipe.findOne({
+      where: {name},
+    });
+
+    if (existingRecipe) {
+      return res.status(400).json({
+        success: false,
+        message: 'Recipe Already Exist!',
+      });
+    }
+
     const slug = slugify(name, {lower: true});
+
+    const imageName = req.file;
+
+    const oldImage = recipe.image_name;
+    const newImage = imageName ?
+      `${Date.now()}-${slugify(imageName.originalname, {
+        lower: true,
+      })}` : oldImage;
+
+    if (imageName) {
+      const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+      const storageClient = new Storage({
+        projectId: process.env.GCP_PROJECT_ID,
+        keyFilename: process.env.GCP_KEY_FILENAME,
+      });
+
+      const fileName = imageName;
+
+      const bucket = storageClient.bucket(storageBucket);
+      const gcsFile = bucket.file(fileName);
+      // const imagePath = `./image/images/recipes/${imageName}`;
+      // fs.unlink(imagePath, (err) => {
+      //   if (err) throw err;
+      //   console.log(`${imageName} was deleted`);
+      // });
+      await gcsFile.delete();
+
+      const stream = gcsFile.createWriteStream({
+        metadata: {
+          contentType: imageName.mimetype,
+        },
+        predefinedAcl: 'publicRead',
+      });
+
+      await new Promise((resolve, reject) => {
+        stream.on('finish', resolve);
+        stream.on('error', reject);
+      });
+    }
 
     const updatedRecipe = await recipe.update({
       image_name: newImage,
@@ -405,11 +462,13 @@ exports.patchEditRecipe = async (req, res) => {
       dose,
       unit,
       ingredient_id,
+      isMandatory,
     }) => ({
       dose,
       unit,
       recipe_id: recipe.id,
       ingredient_id,
+      isMandatory,
     }));
 
     const recipeIngredients = await RecipeIngredient
@@ -439,12 +498,16 @@ exports.patchEditRecipe = async (req, res) => {
         dose,
         unit,
         ingredient_id,
+        isMandatory,
       }) => ({
         dose,
         unit,
         ingredient_id,
+        isMandatory,
       })),
-      file: req.file,
+      file: {
+        publicUrl: `https://storage.googleapis.com/${storageBucket}/${newImage}`,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -480,12 +543,35 @@ exports.deleteRecipe = async (req, res) => {
     const imageName = recipe.image_name;
 
     if (imageName) {
-      const storagePath = `./storage/images/recipes/${imageName}`;
-      fs.unlink(storagePath, (err) => {
-        if (err) throw err;
-        console.log(`${imageName} was deleted`);
+      const storage = new Storage({
+        projectId: process.env.GCP_PROJECT_ID,
+        keyFilename: process.env.GCP_KEY_FILENAME,
       });
+
+      const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+      const fileName = imageName;
+
+      const bucket = storage.bucket(storageBucket);
+      const file = bucket.file(fileName);
+      // const imagePath = `./image/images/recipes/${imageName}`;
+      // fs.unlink(imagePath, (err) => {
+      //   if (err) throw err;
+      //   console.log(`${imageName} was deleted`);
+      // });
+      await file.delete();
     }
+
+    await NutritionFact.destroy({
+      where: {recipe_id: recipe.id},
+    });
+
+    await RecipeIngredient.destroy({
+      where: {recipe_id: recipe.id},
+    });
+
+    await Bookmark.destroy({
+      where: {recipe_id: recipe.id},
+    });
 
     await recipe.destroy();
 
@@ -530,7 +616,7 @@ exports.postRecipeBookmark = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
-      error: error.message,
+      error: error,
     });
   }
 };
@@ -572,7 +658,7 @@ exports.postRecipeActivity = async (req, res) => {
     }
 
     const activity = await Activity.create({
-      date: new Date().toISOString(),
+      date: new Date(),
       calorie: recipe.NutritionFact.calorie_dose,
       carbo: recipe.NutritionFact.carbo_dose,
       protein: recipe.NutritionFact.protein_dose,

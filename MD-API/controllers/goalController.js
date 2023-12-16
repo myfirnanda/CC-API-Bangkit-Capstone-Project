@@ -2,11 +2,30 @@ const slugify = require('slugify');
 const moment = require('moment');
 
 const Goal = require('../models/goalModel');
+const Recipe = require('../models/recipeModel');
 
 exports.getGoals = async (req, res) => {
   try {
     const goals = await Goal.findAll({
       where: {user_id: req.user.id},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+            },
+          ],
+        },
+      ],
     });
 
     return res.status(200).json({
@@ -29,6 +48,24 @@ exports.getGoal = async (req, res) => {
 
     const goal = await Goal.findOne({
       where: {slug: goalSlug},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+            },
+          ],
+        },
+      ],
     });
 
     if (!goal) {
@@ -60,6 +97,17 @@ exports.postGoal = async (req, res) => {
       target_calorie,
     } = req.body;
 
+    const existingGoal = await Goal.findOne({
+      where: {name},
+    });
+
+    if (existingGoal) {
+      return res.status(400).json({
+        success: false,
+        message: 'Goal Already Exist!',
+      });
+    }
+
     const slug = slugify(name, {lower: true});
 
     const dueDate = moment().add(duration_month, 'months');
@@ -75,7 +123,7 @@ exports.postGoal = async (req, res) => {
     });
 
     return res.status(201).json({
-      success: 'success',
+      success: true,
       message: 'Successful Add New Goal',
       data: {
         name,
@@ -118,7 +166,7 @@ exports.getEditGoal = async (req, res) => {
       });
     }
 
-    return status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Successful Get Edit Goal',
     });
@@ -156,6 +204,17 @@ exports.patchEditGoal = async (req, res) => {
     target_calorie,
   } = req.body;
 
+  const existingGoal = await Goal.findOne({
+    where: {name},
+  });
+
+  if (existingGoal) {
+    return res.status(400).json({
+      success: false,
+      message: 'Goal Already Exist!',
+    });
+  }
+
   const slug = slugify(name, {lower: true});
 
   const dueDate = moment().add(duration_month, 'months');
@@ -166,7 +225,7 @@ exports.patchEditGoal = async (req, res) => {
     duration_month: dueDate.format('YYYY-MM-DD HH:mm:ss'),
     target_calorie,
   }, {
-    where: {id: req.user.id},
+    where: {slug: goalSlug},
   });
 
   return res.status(200).json({
@@ -179,7 +238,7 @@ exports.deleteGoal = async (req, res) => {
   try {
     const {goalSlug} = req.params;
 
-    const goal = Goal.findOne({where: {slug: goalSlug}});
+    const goal = await Goal.findOne({where: {slug: goalSlug}});
 
     if (!goal) {
       return res.status(400).json({

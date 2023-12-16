@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('users', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -20,6 +20,7 @@ module.exports = {
         validate: {
           notEmpty: true,
         },
+        unique: true,
       },
       slug: {
         type: Sequelize.STRING,

@@ -1,0 +1,23 @@
+Jika ingin memnggunakan postman untuk menguji nilai req.body apakah berhasil dikirim, pastikan melakukannya di "Body->Raw(JSON)"
+
+Sementara itu jika ingin mengujinya melalui "Body->form-data" pastikan menggunakan multer, terlepas dari apakah hanya menguji nilai dari req.file atau req.body, selama dilakukan di form-data maka wajib pake multer
+
+integrasi cloud Storage
+Btw, untuk tutorial integrasi dengan cloud storage bisa dilihat di video ini.
+https://www.youtube.com/watch?v=pfKR0eBkpTY&ab_channel=DanielOtto
+Misal sudah download keyfilename JSON nya maka, rename file JSON nya menjadi nama yg mudah dipahami, misal seperti 'api-key.json', kemudian pindahkan file ke direktori utama proyek ini satu direktori dengan app.js. Kemudian nama dari file bisa diinputkan ke .env, misal:
+GCP_KEY_FILENAME=api-key.json
+untuk penggunaan GCP_KEY_FILENAME bisa dilihat di controller recipe, auth, profile
+
+integrasi cloud SQL
+buat instance di cloud SQL, kemudian sesuaikan data dengan instance SQL yang telah dibuat.
+DB_NAME=<YOUR_DATABASE_NAME>
+DB_USERNAME=<DEFAULT: ROOT>
+DB_PASSWORD=<YOUR_DATABASE_PASSWORD>
+DB_HOST=<INSTANCE_PUBLIC_IP_ADDRESS>
+DB_DIALECT=<YOUR_INSTANCE_DIALECT>
+PENTING: pastikan agar instance bisa diakses secara publik, caranya:
+- Pada halaman overview, Klik EDIT pada navigasi bagian atas
+- Scroll kebawah, nah pada bagian CUSTOMIZE YOUR INSTANCE klik Tab CONNECTIONS
+- Klik ADD A NETWORK, untuk nama "public"  dan network "0.0.0.0/0", klik DONE.
+- Klik SAVE

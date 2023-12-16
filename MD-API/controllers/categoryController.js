@@ -74,6 +74,17 @@ exports.postAddCategory = async (req, res) => {
   try {
     const {name} = req.body;
 
+    const existingCategory = await Category.findOne({
+      where: {name},
+    });
+
+    if (existingCategory) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category Already Exist!',
+      });
+    }
+
     const slug = slugify(name, {lower: true});
 
     await Category.create({
@@ -156,6 +167,22 @@ exports.patchEditCategory = async (req, res) => {
     }
 
     const {name} = req.body;
+
+    const existingCategory = await Category.findOne({
+      where: {name},
+    });
+
+    if (existingCategory) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category Already Exist!',
+      });
+    }
+
+    await Category.create({
+      name,
+      slug,
+    });
 
     const slug = slugify(name, {lower: true});
 

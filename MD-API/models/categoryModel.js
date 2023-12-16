@@ -15,6 +15,7 @@ const Category = sequelize.define('Category', {
     validate: {
       notEmpty: true,
     },
+    unique: true,
   },
   slug: {
     type: DataTypes.STRING,

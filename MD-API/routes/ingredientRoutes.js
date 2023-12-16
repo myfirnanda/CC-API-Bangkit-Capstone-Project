@@ -1,29 +1,31 @@
 const {Router} = require('express');
-const slugify = require('slugify');
+// const slugify = require('slugify');
 const multer = require('multer');
-const path = require('path');
+// const path = require('path');
 
 const router = Router();
 
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    cb(null, './storage/images/ingredients');
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const fileName = slugify(file.originalname.replace(ext, ''), {
-      lower: true,
-    });
-    const timestamp = Date.now();
-    const newFilename = `${fileName}-${timestamp}${ext}`;
-    cb(null, newFilename);
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: function(req, file, cb) {
+//     cb(null, './storage/images/ingredients');
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = path.extname(file.originalname);
+//     const fileName = slugify(file.originalname.replace(ext, ''), {
+//       lower: true,
+//     });
+//     const timestamp = Date.now();
+//     const newFilename = `${fileName}-${timestamp}${ext}`;
+//     cb(null, newFilename);
+//   },
+// });
+
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 1000 * 1024, // 1 MB
+    fileSize: 2 * 1024 * 1024,
   },
 });
 

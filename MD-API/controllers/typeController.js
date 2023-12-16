@@ -74,6 +74,17 @@ exports.postAddType = async (req, res) => {
   try {
     const {name} = req.body;
 
+    const existingType = await Type.findOne({
+      where: {name},
+    });
+
+    if (existingType) {
+      return res.status(400).json({
+        success: false,
+        message: 'User Already Exist!',
+      });
+    }
+
     const slug = slugify(name, {lower: true});
 
     await Type.create({
@@ -134,10 +145,6 @@ exports.patchEditType = async (req, res) => {
   try {
     const {typeSlug} = req.params;
 
-    const {name} = req.body;
-
-    const slug = slugify(name, {lower: true});
-
     const type = Type.findOne({
       where: {slug: typeSlug},
     });
@@ -155,6 +162,21 @@ exports.patchEditType = async (req, res) => {
         message: 'Forbidden. You are not authenticated as this user',
       });
     }
+
+    const {name} = req.body;
+
+    const existingType = await Type.findOne({
+      where: {name},
+    });
+
+    if (existingType) {
+      return res.status(400).json({
+        success: false,
+        message: 'User Already Exist!',
+      });
+    }
+
+    const slug = slugify(name, {lower: true});
 
     await type.update({
       name,

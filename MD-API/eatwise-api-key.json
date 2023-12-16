@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "capstone-api-406515",
+  "private_key_id": "4a42501311a7622f8d4f3bccede100768e4e3313",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCe9PwKjF8dFwKy\n6Iccx1KS/6KOTW2Fwf/fXOKTZFooVEwcZL7zORwbo2hCfPVozPBoHqyl/34WHLjL\n/Min4/gnLCVse55C0+sEt6GmniuTMv3q5phE8ixaspvxGeHKtSqlYPYKBWRIrPw3\nCsAR/sECNcC9usMogfx3H5Anz8+9WuOzmeGoktkpKm1UP9mviqe2dT/vH4RiTZZi\niyusFhNcV0dQeWciBV2Oq2FRKhzXIAHOVfBLmdu0piVnVWSZwHkBnLFNN+YTyrf9\nUYOQaWXQZNW8XSX8KhNHb2pD8EnMofffrOLQbH1weyK/Sqg9xw7zDOi241zIjZhr\nndi92rLpAgMBAAECggEAQBqBKEnas7MLahYfIup5MQH5ztSH1hjZ9PyS/SjLuRbh\nyNOSNCk0XisEiUe2eminjP3N13XVJdq4Zb9QNnDXqwiBISIrPT0UOsdJYBXKcebv\nApOzFZ7qZzs/azhqV+K+y4nyPzFUc4CbiCEEO12W/aqqy3jtakEdjPbEHmIOn4hL\n81rkZi3IMMOuDapkru2RvV3XEFyig0bvvXwgwzw3zTkuqc8opqmxuGBjYC0Hw/T9\nbR1r2G9tY5lAusZ/kySkoj59b9q0UGZvBVUK32jSpiREOeRZKVfIFQ8ml07Zm05A\nyFa3XD9wwGbN8dESPtFOEPWn19IiNN8+3QuCivngLwKBgQDeNr0DaGxK/3LuWNXU\nazRlzyHkfYFmuMH2mx+UCbuy8BU6h7cWbgCqhCin4uAxecoVOHWxrEqp/EwN8MJh\nBo9r6Hip82iYPy/iQEa9QKVSZY2vBqdJMbv11Nz/Ycbt8hVzVaB0SK/LB/BzWqpa\nzfuTuQT6f5HdKhS1gva1R3y0pwKBgQC3IBcjNxtZhypGFlAmfMBfVKv3fFVcDnOK\nE/OpMRBl+nwUqzfQPNE6c+PYSk49b3hxHravxH8lrhQRPBZNKz9Znq60GZMhzlIq\nVaz/CfmwJ3CxQ4ULNHSK4hdUUKve6lprjY4Rt8mC/cpJLch3KmrWxdG9C2qG+cFC\nS48xipP97wKBgQDVg20MKDrduSO6pvsW9sdLB8J+JKXAiMg+ZwDpooyKu6r6KUsf\nryTOstvJrPJUN7yXtT9JL84yFO0S/AIZbk9ClQXT7sDSgOxGjhIqaEIxsMh5o3/7\nkWEULasHa/DT0ycPQfhBo1HeWMuOW1CSnZcccsu40fjatENfwO3Cc2T8wwKBgG0c\noMypxBEHGWgjWWRlRpZGtCRFH/M25R7rnm48PsIUiqQiFKJt6ljCvoqcU5wFdCUq\noL1//iZsX6aZP8yBLUDv7LaA2or1DT4OSIK55d1Q0rO8QGSZv6sU5cOmQZIT3wZg\nlLr34Ai9wS7zKZPfYUNRIRRb3gBIhh9DODHTmTRfAoGBANnKaA/8hrmRX+0w5h65\nP/m0lTGzV9oiJ0TNqzv8KXZ8KAaYdlFcSiW1R+N0/tQnLoVnFTXJgUpa0ZHiHN8+\nfw6fKdlHQoy5NxnbRIEWra4EXZFSa3qg1WPWGmPNqE9EyXBbBRuU+/qa0nEe1JiM\niydFBFiyfG3EDcc5LjcO8aFY\n-----END PRIVATE KEY-----\n",
+  "client_email": "eatwise-service-account@capstone-api-406515.iam.gserviceaccount.com",
+  "client_id": "117847793016619542921",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/eatwise-service-account%40capstone-api-406515.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
