@@ -1,0 +1,8 @@
+uvicorn
+gensim
+numpy
+scikit-learn
+nltk
+python-dotenv
+pandas
+fastapi

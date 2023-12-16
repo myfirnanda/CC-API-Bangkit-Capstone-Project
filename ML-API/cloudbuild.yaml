@@ -1,5 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/hybrid-chariot-406817/eatwise-recipe_recommendation-api', '.']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push','gcr.io/hybrid-chariot-406817/eatwise-recipe_recommendation-api']
