@@ -28,15 +28,21 @@ async def recommend_recipes(user_input: UserInput, data: RecipeModelData = Depen
     
     result_df = data.data[data.data['title'].isin(top_recipes_titles)].reset_index(drop=True)
     
-    print(result_df)
-
     results_list = []
     for _, row in result_df.iterrows():
         result = {
-            "id": row["id"],
             "title": row["title"],
+            "slugs": "-".join([i.lower() for i in row["title"].split()]),
             "ingredients": row["ingredients"],
-            "preparation": row["preparation"]
+            "preparation": row["preparation"],
+            "calories": row["calories"],
+            "carb": row["carb"],
+            "protein": row["protein"],
+            "fat": row["fat"],
+            "types": row["types"],
+            "category": row["category"],
+            "isdairy": row["is_diary"],
+            "img": row["image_url"],
         }
         results_list.append(result)
 
