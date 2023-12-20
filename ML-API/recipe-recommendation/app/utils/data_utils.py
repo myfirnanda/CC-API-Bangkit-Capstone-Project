@@ -54,4 +54,6 @@ def recommend_top_recipes(user_input_vector, all_recipes_vector, data, N=20):
     return top_recipes_titles
 
 def get_recipe_data(file_csv):
-    return pd.read_csv(file_csv)
+    data = pd.read_csv(file_csv)
+    data['title'] = data['title'].apply(lambda x: x.title())
+    return data
