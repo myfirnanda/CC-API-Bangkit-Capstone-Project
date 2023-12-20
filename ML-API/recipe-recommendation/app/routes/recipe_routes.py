@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+import json
 
 from ..utils.models import UserInput, Recipe, RecipeModelData
 from ..utils.data_utils import (
@@ -13,11 +14,11 @@ router = APIRouter()
 recipe_model_data_instance = RecipeModelData()
 
 # invoke loaded dependencies
-def get_recipe_data():
+def load_data():
     return recipe_model_data_instance
 
 @router.post("/recommend-recipes/predict/", response_model=list[Recipe])
-async def recommend_recipes(user_input: UserInput, data: RecipeModelData = Depends(get_recipe_data)):
+async def recommend_recipes(user_input: UserInput, data: RecipeModelData = Depends(load_data)):
     
     if not (user_input.limit == "all" or (isinstance(user_input.limit, int) and user_input.limit >= 1)):
         raise HTTPException(status_code=400, detail="Invalid limit value")
@@ -50,3 +51,16 @@ async def recommend_recipes(user_input: UserInput, data: RecipeModelData = Depen
         return results_list
     
     return results_list[:int(user_input.limit)]
+
+
+data_csv = get_recipe_data("app/ml/data_vegan_recipe.csv")
+
+@router.get("/recipes/{slugs}")
+async def get_recipe(slugs: str):
+    filtered_df = data_csv[data_csv['slugs'].str.contains(slugs, na=False)]
+    
+    if len(filtered_df) != 1:
+        raise HTTPException(status_code=400, detail="Data not found")
+
+    return filtered_df.to_dict(orient='records')[0]
+    
