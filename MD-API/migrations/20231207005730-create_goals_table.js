@@ -17,7 +17,6 @@ module.exports = {
         validate: {
           notEmpty: true,
         },
-        unique: true,
       },
       slug: {
         type: Sequelize.STRING,
@@ -50,6 +49,7 @@ module.exports = {
           notEmpty: true,
           min: 0,
         },
+        defaultValue: 0,
       },
       total_protein: {
         type: Sequelize.FLOAT,
@@ -58,6 +58,7 @@ module.exports = {
           notEmpty: true,
           min: 0,
         },
+        defaultValue: 0,
       },
       total_fat: {
         type: Sequelize.FLOAT,
@@ -66,6 +67,7 @@ module.exports = {
           notEmpty: true,
           min: 0,
         },
+        defaultValue: 0,
       },
       status: {
         type: Sequelize.BOOLEAN,

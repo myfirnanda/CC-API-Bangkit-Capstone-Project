@@ -1,10 +1,8 @@
 const Activity = require('./activityModel');
-const Bookmark = require('./bookmarkModel');
 const Category = require('./categoryModel');
 const Goal = require('./goalModel');
 const Ingredient = require('./ingredientModel');
 const NutritionFact = require('./nutritionFactModel');
-const RecipeIngredient = require('./recipeIngredientsModel');
 const Recipe = require('./recipeModel');
 const Type = require('./typeModel');
 const User = require('./userModel');
@@ -32,7 +30,7 @@ const associateModels = () => {
   });
 
   // Ingredient (NOT WORK IN MYSQL WORKBENCH ERD)
-  Ingredient.belongsToMany(RecipeIngredient, {
+  Ingredient.belongsToMany(Recipe, {
     foreignKey: 'ingredient_id',
     through: 'RecipeIngredient',
   });
@@ -47,11 +45,11 @@ const associateModels = () => {
   Recipe.belongsTo(Type, {foreignKey: 'type_id'});
   Recipe.belongsTo(Category, {foreignKey: 'category_id'});
   Recipe.belongsTo(Activity, {foreignKey: 'activity_id'});
-  Recipe.belongsToMany(RecipeIngredient, {
+  Recipe.belongsToMany(Ingredient, {
     foreignKey: 'recipe_id',
     through: 'RecipeIngredient',
   });
-  Recipe.belongsToMany(Bookmark, {
+  Recipe.belongsToMany(User, {
     foreignKey: 'recipe_id',
     through: 'Bookmark',
   });
@@ -66,7 +64,7 @@ const associateModels = () => {
   User.hasMany(Recipe, {foreignKey: 'user_id'});
   User.hasMany(Category, {foreignKey: 'user_id'});
   User.hasMany(Type, {foreignKey: 'user_id'});
-  User.belongsToMany(Bookmark, {
+  User.belongsToMany(Recipe, {
     foreignKey: 'user_id',
     through: 'Bookmark',
   });

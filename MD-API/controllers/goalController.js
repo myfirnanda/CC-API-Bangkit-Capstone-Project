@@ -3,6 +3,11 @@ const moment = require('moment');
 
 const Goal = require('../models/goalModel');
 const Recipe = require('../models/recipeModel');
+const Activity = require('../models/activityModel');
+const Category = require('../models/categoryModel');
+const Type = require('../models/typeModel');
+const NutritionFact = require('../models/nutritionFactModel');
+const User = require('../models/userModel');
 
 exports.getGoals = async (req, res) => {
   try {
@@ -10,20 +15,7 @@ exports.getGoals = async (req, res) => {
       where: {user_id: req.user.id},
       include: [
         {
-          model: Recipe,
-          include: [
-            {
-              model: Category,
-              attributes: ['name'],
-            },
-            {
-              model: Type,
-              attributes: ['name'],
-            },
-            {
-              model: NutritionFact,
-            },
-          ],
+          model: Activity,
         },
       ],
     });
@@ -50,23 +42,35 @@ exports.getGoal = async (req, res) => {
       where: {slug: goalSlug},
       include: [
         {
-          model: Recipe,
+          model: User,
           include: [
             {
-              model: Category,
-              attributes: ['name'],
-            },
-            {
-              model: Type,
-              attributes: ['name'],
-            },
-            {
-              model: NutritionFact,
+              model: Recipe,
+              include: [
+                {
+                  model: Category,
+                  attributes: ['name'],
+                },
+                {
+                  model: Type,
+                  attributes: ['name'],
+                },
+                {
+                  model: NutritionFact,
+                },
+              ],
             },
           ],
         },
       ],
     });
+
+    if (goal.user_id !== req.user.id) {
+      return res.status(403).json({
+        success: 'false',
+        message: 'Forbidden. You are not authenticated as this user',
+      });
+    }
 
     if (!goal) {
       return res.status(404).json({
@@ -89,7 +93,22 @@ exports.getGoal = async (req, res) => {
   }
 };
 
-exports.postGoal = async (req, res) => {
+exports.getAddGoal = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: 'Successful Get Add Goal',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
+exports.postAddGoal = async (req, res) => {
   try {
     const {
       name,
@@ -117,6 +136,9 @@ exports.postGoal = async (req, res) => {
       slug,
       duration_month: dueDate.format('YYYY-MM-DD HH:mm:ss'),
       total_calorie: 0,
+      total_carbo: 0,
+      total_protein: 0,
+      total_fat: 0,
       target_calorie,
       status: null,
       user_id: req.user.id,
@@ -131,6 +153,9 @@ exports.postGoal = async (req, res) => {
         duration_month,
         target_calorie,
         total_calorie: 0,
+        total_carbo: 0,
+        total_protein: 0,
+        total_fat: 0,
         status: null,
         user_id: req.user.id,
       },
@@ -198,6 +223,13 @@ exports.patchEditGoal = async (req, res) => {
     });
   }
 
+  if (goal.status != null) {
+    return res.status(403).json({
+      success: false,
+      message: 'Your goal progress is finished, you can\'t edit your goal',
+    });
+  }
+
   const {
     name,
     duration_month,
@@ -253,6 +285,10 @@ exports.deleteGoal = async (req, res) => {
         message: 'Forbidden. You are not authenticated as this user',
       });
     }
+
+    await Activity.destroy({
+      where: {goal_id: goal.id},
+    });
 
     await goal.destroy();
 

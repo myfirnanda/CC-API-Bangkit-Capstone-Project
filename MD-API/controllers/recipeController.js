@@ -15,7 +15,7 @@ const Ingredient = require('../models/ingredientModel');
 
 exports.getRecipes = async (req, res) => {
   try {
-    const {search} = req.query;
+    const {search, limit} = req.query;
 
     const whereCondition = {
       name: {
@@ -40,18 +40,27 @@ exports.getRecipes = async (req, res) => {
         },
         {
           model: NutritionFact,
-          attributes: ['calorie_dose'],
         },
       ],
+      limit: limit ? parseInt(limit, 10) : undefined,
     });
+
+    const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+
+    const modifiedRecipe = recipes.map((recipe) => ({
+      publicUrl: `https://storage.googleapis.com/${storageBucket}/${recipe.image_name}`,
+      ...recipe.toJSON(),
+      Category: recipe.Category ? recipe.Category.toJSON() : null,
+      Type: recipe.Type ? recipe.Type.toJSON() : null,
+      NutritionFact: recipe.NutritionFact ? recipe.NutritionFact.toJSON() : null,
+    }));
 
     return res.status(200).json({
       success: true,
       message: 'Successful Get All Recipes',
-      data: recipes,
+      data: modifiedRecipe,
     });
   } catch (error) {
-    console.log(error.message);
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
@@ -76,11 +85,8 @@ exports.getRecipe = async (req, res) => {
           attributes: ['name'],
         },
         {
-          model: NutritionFact,
-        },
-        {
-          model: RecipeIngredient,
-          include: [Ingredient],
+          model: Ingredient,
+          through: RecipeIngredient,
         },
       ],
     });
@@ -92,9 +98,13 @@ exports.getRecipe = async (req, res) => {
       });
     }
 
+    const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+    const fileName = recipe.image_name;
+
     return res.status(200).json({
       success: true,
       message: 'Successful Get Recipe Detail',
+      publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
       data: recipe,
     });
   } catch (error) {
@@ -245,6 +255,7 @@ exports.postAddRecipe = async (req, res) => {
       success: true,
       message: 'Successful Add New Recipe',
       dataRecipe: {
+        publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
         name,
         slug,
         description,
@@ -271,9 +282,6 @@ exports.postAddRecipe = async (req, res) => {
         ingredient_id,
         isMandatory,
       })),
-      file: {
-        publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
-      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -300,8 +308,8 @@ exports.getEditRecipe = async (req, res) => {
           attributes: ['name'],
         },
         {
-          model: RecipeIngredient,
-          include: [Ingredient],
+          model: Ingredient,
+          through: RecipeIngredient,
         },
       ],
     });
@@ -624,7 +632,7 @@ exports.postRecipeBookmark = async (req, res) => {
 exports.postRecipeActivity = async (req, res) => {
   try {
     const {recipeSlug} = req.params;
-    const {goal_id} = req.body;
+    // const {goal_id} = req.body;
 
     const recipe = await Recipe.findOne({
       where: {slug: recipeSlug},
@@ -648,14 +656,14 @@ exports.postRecipeActivity = async (req, res) => {
       });
     }
 
-    const isGoalCreated = await Goal.findByPk(goal_id);
+    // const isGoalCreated = await Goal.findByPk(goal_id);
 
-    if (!isGoalCreated) {
-      return res.status(400).json({
-        success: false,
-        message: 'Create Your Goal First Before Add Activity',
-      });
-    }
+    // if (!isGoalCreated) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Create Your Goal First Before Add Activity',
+    //   });
+    // }
 
     const activity = await Activity.create({
       date: new Date(),
@@ -664,12 +672,15 @@ exports.postRecipeActivity = async (req, res) => {
       protein: recipe.NutritionFact.protein_dose,
       fat: recipe.NutritionFact.fat_dose,
       user_id: req.user.id,
-      goal_id,
+      goal_id: req.user.id,
     });
 
     const goal = await Goal.findByPk(activity.goal_id);
 
     goal.total_calorie += activity.calorie;
+    goal.total_carbo += activity.carbo;
+    goal.total_protein += activity.protein;
+    goal.total_fat += activity.fat;
 
     await goal.save();
 

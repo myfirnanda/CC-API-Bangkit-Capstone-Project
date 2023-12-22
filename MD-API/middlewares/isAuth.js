@@ -1,14 +1,14 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
-exports.isAuth = (req, res, next) => {
+exports.isAuth = async (req, res, next) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    return res.status(401).json({
+    return res.status(403).json({
       success: false,
       message: 'User not authenticated',
-      error: 'Unauthorized',
+      error: 'Forbidden',
     });
   }
 
@@ -32,7 +32,6 @@ exports.isAuth = (req, res, next) => {
 
     req.user = user;
 
-    console.log(decodedToken);
     next();
   });
 };

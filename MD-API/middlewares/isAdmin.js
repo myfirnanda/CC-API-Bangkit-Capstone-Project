@@ -36,3 +36,14 @@ exports.isAdmin = (req, res, next) => {
     next();
   });
 };
+
+// exports.adminAuth = (req, res, next) => {
+//   if (!req.session.adminLoggedIn) {
+//     return res.status(403).json({
+//       success: false,
+//       message: 'User is not an admin',
+//       error: 'Forbidden',
+//     });
+//   }
+//   next();
+// };

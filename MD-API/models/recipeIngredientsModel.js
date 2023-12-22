@@ -35,7 +35,6 @@ const RecipeIngredient = sequelize.define('RecipeIngredient', {
     allowNull: false,
     validate: {
       notEmpty: true,
-      min: 0,
     },
   },
   isMandatory: {

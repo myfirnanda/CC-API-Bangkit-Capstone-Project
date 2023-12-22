@@ -42,6 +42,16 @@ const User = sequelize.define('User', {
       notEmpty: true,
     },
   },
+  gender: {
+    type: DataTypes.ENUM(
+        'male',
+        'female',
+    ),
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
+  },
   weight: {
     type: DataTypes.FLOAT,
     allowNull: false,
@@ -56,6 +66,19 @@ const User = sequelize.define('User', {
     validate: {
       notEmpty: true,
       min: 0,
+    },
+  },
+  activity_level: {
+    type: DataTypes.ENUM(
+        'sedentary',
+        'lightly active',
+        'moderately active',
+        'active',
+        'highly active',
+    ),
+    allowNull: false,
+    validate: {
+      notEmpty: true,
     },
   },
   isDairy: {

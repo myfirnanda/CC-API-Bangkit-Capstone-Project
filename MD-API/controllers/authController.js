@@ -4,8 +4,9 @@ const slugify = require('slugify');
 const {Storage} = require('@google-cloud/storage');
 
 const User = require('../models/userModel');
+const Goal = require('../models/goalModel');
 
-const maxAge = 7 * 24 * 60 * 60; // 1 WEEK EXPIRES
+const maxAge = 30 * 24 * 60 * 60; // 1 MONTH EXPIRES
 const createToken = (email) => {
   return jwt.sign({email}, process.env.JWT_SECRET, {
     expiresIn: maxAge,
@@ -25,9 +26,12 @@ exports.postSignup = async (req, res) => {
       name,
       email,
       password,
+      age,
+      gender,
       weight,
       height,
       isDairy,
+      activity_level,
     } = req.body;
 
     const slug = slugify(name, {lower: true});
@@ -75,17 +79,28 @@ exports.postSignup = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcryptjs.hash(password, saltRounds);
 
-    const isProfileImage = profileImage ? profileImage.filename : '';
+    const isProfileImage = profileImage ? fileName : '';
 
-    await User.create({
+    const user = await User.create({
       profile_image: isProfileImage,
       name,
       slug,
       email,
       password: hashedPassword,
+      age,
+      gender,
       weight,
       height,
+      activity_level,
       isDairy,
+    });
+
+    await Goal.create({
+      name: 'Sehat & Bugar',
+      slug: 'sehat-&-bugar',
+      duration_month: 6,
+      target_calorie: 5000,
+      user_id: user.id,
     });
 
     stream.end(profileImage.buffer);
@@ -93,9 +108,18 @@ exports.postSignup = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Successful Signup!',
-      data: req.body,
-      file: {
+      data: {
         publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
+        profile_image: isProfileImage,
+        name,
+        email,
+        password,
+        age,
+        gender,
+        weight,
+        height,
+        activity_level,
+        isDairy,
       },
     });
   } catch (error) {
@@ -143,11 +167,20 @@ exports.postLogin = async (req, res) => {
 
     const token = createToken(user.email);
     res.cookie('jwt', token, {httpOnly: true, maxAge});
-    req.isLoggedIn = true;
+
+    const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+    const fileName = user.profile_image;
+
+    req.token = token;
 
     return res.status(200).json({
       success: true,
       message: 'Successful Login!',
+      publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
+      data: {
+        user,
+        token,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -161,7 +194,6 @@ exports.postLogin = async (req, res) => {
 exports.postLogout = (req, res) => {
   try {
     res.clearCookie('jwt');
-    req.isLoggedIn = false;
     return res.status(200).json({
       success: true,
       message: 'Successful Logout!',

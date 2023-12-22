@@ -7,11 +7,33 @@ const NutritionFact = require('../models/nutritionFactModel');
 const RecipeIngredient = require('../models/recipeIngredientsModel');
 const Bookmark = require('../models/bookmarkModel');
 const Activity = require('../models/activityModel');
+const Category = require('../models/categoryModel');
+const Type = require('../models/typeModel');
+const Ingredient = require('../models/ingredientModel');
 
 exports.getActivities = async (req, res) => {
   try {
     const activities = await Activity.findAll({
       where: {user_id: req.user.id},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+              attributes: ['calorie_dose'],
+            },
+          ],
+        },
+      ],
     });
 
     if (!activities) {
@@ -36,6 +58,136 @@ exports.getActivities = async (req, res) => {
   }
 };
 
+exports.getActivity =async (req, res) => {
+  try {
+    const {activityId} = req.params;
+
+    const activity = await Activity.findOne({
+      where: {id: activityId},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+            },
+            {
+              model: Ingredient,
+              through: RecipeIngredient,
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!activity) {
+      return res.status(404).json({
+        success: false,
+        message: 'Activity Not Found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Successful Get Activity Detail',
+      data: activity,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
+exports.getGoals = async (req, res) => {
+  try {
+    const goals = await Goal.findAll({
+      where: {user_id: req.user.id},
+      include: [
+        {
+          model: Activity,
+        },
+      ],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Successful Get All Goals',
+      data: goals,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
+exports.getGoal = async (req, res) => {
+  try {
+    const {goalSlug} = req.params;
+
+    const goal = await Goal.findOne({
+      where: {slug: goalSlug},
+      include: [
+        {
+          model: Recipe,
+          include: [
+            {
+              model: Category,
+              attributes: ['name'],
+            },
+            {
+              model: Type,
+              attributes: ['name'],
+            },
+            {
+              model: NutritionFact,
+            },
+          ],
+        },
+      ],
+    });
+
+    if (goal.user_id !== req.user.id) {
+      return res.status(403).json({
+        success: 'false',
+        message: 'Forbidden. You are not authenticated as this user',
+      });
+    }
+
+    if (!goal) {
+      return res.status(404).json({
+        success: 'false',
+        message: 'Goal Not Found!',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Successful Get Goal',
+      data: goal,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
 exports.getUser = async (req, res) => {
   try {
     const user = await User.findOne({email: req.user.email});
@@ -47,9 +199,13 @@ exports.getUser = async (req, res) => {
       });
     }
 
+    const storageBucket = process.env.GCP_STORAGE_BUCKET_NAME;
+    const fileName = user.profile_image;
+
     return res.status(200).json({
       success: true,
       message: 'Successful Get Your Profile',
+      publicUrl: `https://storage.googleapis.com/${storageBucket}/${fileName}`,
       data: user,
     });
   } catch (error) {

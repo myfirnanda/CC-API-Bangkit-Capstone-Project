@@ -37,7 +37,6 @@ module.exports = {
         allowNull: false,
         validate: {
           notEmpty: true,
-          min: 0,
         },
       },
       isMandatory: {

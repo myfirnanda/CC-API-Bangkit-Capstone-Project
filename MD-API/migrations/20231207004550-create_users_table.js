@@ -44,6 +44,16 @@ module.exports = {
           notEmpty: true,
         },
       },
+      gender: {
+        type: Sequelize.ENUM(
+            'male',
+            'female',
+        ),
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
+      },
       weight: {
         type: Sequelize.FLOAT,
         allowNull: false,
@@ -58,6 +68,27 @@ module.exports = {
         validate: {
           notEmpty: true,
           min: 0,
+        },
+      },
+      age: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
+        defaultValue: 10,
+      },
+      activity_level: {
+        type: Sequelize.ENUM(
+            'sedentary',
+            'lightly active',
+            'moderately active',
+            'active',
+            'highly active',
+        ),
+        allowNull: false,
+        validate: {
+          notEmpty: true,
         },
       },
       isDairy: {

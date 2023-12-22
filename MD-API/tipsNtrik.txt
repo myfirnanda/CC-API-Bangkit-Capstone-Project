@@ -2,14 +2,14 @@ Jika ingin memnggunakan postman untuk menguji nilai req.body apakah berhasil dik
 
 Sementara itu jika ingin mengujinya melalui "Body->form-data" pastikan menggunakan multer, terlepas dari apakah hanya menguji nilai dari req.file atau req.body, selama dilakukan di form-data maka wajib pake multer
 
-integrasi cloud Storage
+***===== integrasi cloud Storage =====***
 Btw, untuk tutorial integrasi dengan cloud storage bisa dilihat di video ini.
 https://www.youtube.com/watch?v=pfKR0eBkpTY&ab_channel=DanielOtto
 Misal sudah download keyfilename JSON nya maka, rename file JSON nya menjadi nama yg mudah dipahami, misal seperti 'api-key.json', kemudian pindahkan file ke direktori utama proyek ini satu direktori dengan app.js. Kemudian nama dari file bisa diinputkan ke .env, misal:
 GCP_KEY_FILENAME=api-key.json
 untuk penggunaan GCP_KEY_FILENAME bisa dilihat di controller recipe, auth, profile
 
-integrasi cloud SQL
+***===== integrasi cloud SQL =====***
 buat instance di cloud SQL, kemudian sesuaikan data dengan instance SQL yang telah dibuat.
 DB_NAME=<YOUR_DATABASE_NAME>
 DB_USERNAME=<DEFAULT: ROOT>
@@ -21,3 +21,53 @@ PENTING: pastikan agar instance bisa diakses secara publik, caranya:
 - Scroll kebawah, nah pada bagian CUSTOMIZE YOUR INSTANCE klik Tab CONNECTIONS
 - Klik ADD A NETWORK, untuk nama "public"  dan network "0.0.0.0/0", klik DONE.
 - Klik SAVE
+
+***===== Integrasi dengan container registry & cloud run deployment =====***
+- Pastikan proyek yang digunakan sudah di set terlebih dahulu dengan cloud shell, ketik perintah berikut:
+gcloud config set project <NAMA_PROYEK>
+
+Alurnya seperti ini, pastikan mengupload proyeknya di github terlebih dahulu, kemudian nantinya di clone ke cloud editor melalui cloud shell.
+
+Kemudian selanjutnya buat file Dockerfile dengan isi kurang lebih seperti berikut:
+
+FROM node:latest
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+
+* Btw, Pada saat di deploy aku posisinya dah hapus node_modules, belum nyoba jika sambil disertai node_modules tanpa menghapusnya
+
+* Btw, jika proyek melibatkan env variable, maka variabel env juga bisa langsung dicantumkan ke dockerfile untuk menyambungkannya, ini wajib btw jika emang proyek pake env variable. Lebih lengkapnya tanya chatGPT.
+
+Oke jika sudah buat docker file nya maka selanjutnya jalankan command berikut di cloud shell untuk membuat image container registry:
+gcloud builds submit --tag gcr.io/[PROJECT-ID]/[IMAGE-NAME]
+- untuk proyek id pastikan sama dengan proyek id yang dipilih atau di set sebelumnya.
+- Untuk image-name adalah nama dari image nya bisa apa aja, misal "eatwise-image", "coba-dulu", "app saya". Bebas sih klo ini.
+Jika ntar ada tulisan STATUS SUCCESS, berarti image container registry berhasil dibuat.
+
+Oh iya jangan lupa expose 3000 pada dockerfile adalah port nya jika aplikasi pake 3000 maka set juga di dockernya, pastikan nilainya sama.
+
+>> Setelah selesai buat image, maka kita tinggal pergi ke halaman cloud run, kemudian klik "create service", kemudian untuk container image URL pilih image yang sebelumnya telah dibuat di container registry, kemudian untuk nama terserah dan authentication untuk sementara ini biasanya aku pilih yg allow authentication. Jika sudah diatur semua, klik CREATE.
+
+Ketika proses deployment akan lama dan berakhir error, itu karena PORT deployment tidak sesuai dengan PORT di aplikasinya, untuk mengatasi hal ini, pada halaman service detail, klik "EDIT & DEPLOY NEW REVISION", kemudian ubah container port sesuai dengan aplikasinya, misal jika aplikasi pake port 3000, maka ubah container port pada cloud run ke 3000 juga, kemudian klik DEPLOY. Nantinya akan otomatis mendeploy ulang.
+
+===>>> Update proyek deployment cloud run
+untuk mengupdate proyek deployment cloud run, maka perlu upload image baru ke container registry, jalankan command berikut:
+gcloud builds submit --tag gcr.io/[PROJECT-ID]/[IMAGE-NAME]
+**PENTING: Jika nama image sebelumnya ketika pertama kali membuat image di container registry misalnya adalah "eatwise-image", maka pastikan ketika update, IMAGE_NAME sama dengan nama image sebelumnya yakni "eatwise-image" juga. Nantinya dalam image "eatwise-image", akan ada 2 file berbeda. Untuk membedakan mana yang paling baru, bisa dengan melihat tag latest atau field created.
+
+Selanjutnya kita update di deployment cloud run juga, pergi ke halaman cloud run > detail service cloud run > EDIT & DEPLOY NEW REVISION (bagian navigasi atas), kemudian untuk container image URL klik SELECT > container registry > <nama image> > file image (pilih yang latest untuk versi terbaru dari image yang telah kita update sebelumnya) > SELECT. Kemudian klik DEPLOY.
+
+===>>> Delete proyek deployment cloud run & container registry image
+Sebenarnya untuk delete deployment sangat mudah, pertama-tama masuk ke halaman cloud run, kemudian pilih proyek yang akan dihapus dengan mencentangnya, kemudian DELETE dengan klik tong sampah.
+
+Selanjutnya untuk langkah-langkah menghapus container registry image. Pertama-tama masuk ke folder image kemudian pilih image file dengan mencentangnya, kemudian klik DELETE pada bagian atas. Jika di folder image tidak ada image file, maka folder image otomatis terhapus.
